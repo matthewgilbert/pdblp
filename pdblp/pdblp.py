@@ -18,18 +18,30 @@ class BCon(object):
             Host name
         port: int
             Port to connect to
-        debug: False
+        debug: Boolean {True, False}
             Boolean corresponding to whether to log requests messages to stdout
         """
         # Fill SessionOptions
         sessionOptions = blpapi.SessionOptions()
-        sessionOptions.setServerHost('localhost')
-        sessionOptions.setServerPort(8194)
+        sessionOptions.setServerHost(host)
+        sessionOptions.setServerPort(port)
         # Create a Session
         self.session = blpapi.Session(sessionOptions)
         # initialize logger
+        self.debug = False
+
+    @property
+    def debug(self):
+        return self._debug
+
+    @debug.setter
+    def debug(self, value):
+        """
+        Set whether logging is True or False
+        """
+        self._debug = value
         root = logging.getLogger()
-        if debug:
+        if self._debug:
             # log requests and responses
             root.setLevel(logging.DEBUG)
         else:
@@ -53,18 +65,6 @@ class BCon(object):
         # Obtain previously opened service
         self.refDataService = self.session.getService("//blp/refdata")
         self.session.nextEvent()
-
-    def set_logging(self, level):
-        """
-        Set the level of logger
-
-        Parameters
-        ----------
-        level: int
-            Integer corresponding to a logger level
-        """
-        root = logging.getLogger()
-        root.setLevel(level)
 
     def bdh(self, tickers, flds, start_date,
             end_date=datetime.date.today().strftime('%Y%m%d'),
@@ -125,8 +125,8 @@ class BCon(object):
                 break
         data = DataFrame(data)
         data.columns = pd.MultiIndex.from_tuples(
-                           data, names=['ticker', 'field']
-                       )
+            data, names=['ticker', 'field']
+        )
         data.index = pd.to_datetime(data.index)
         return data
 
