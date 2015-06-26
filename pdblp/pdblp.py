@@ -115,18 +115,16 @@ class BCon(object):
                 fldData = msg.getElement('securityData')\
                     .getElement('fieldData')
                 for i in range(fldData.numValues()):
+                    dt = fldData.getValue(i).getElement(0).getValue()
                     for j in range(1, fldData.getValue(i).numElements()):
                         val = fldData.getValue(i).getElement(j).getValue()
-                        dt = fldData.getValue(i).getElement(0).getValue()
                         data[(ticker, flds[j-1])][dt] = val
 
             if ev.eventType() == blpapi.Event.RESPONSE:
                 # Response completely received, so we could exit
                 break
         data = DataFrame(data)
-        data.columns = pd.MultiIndex.from_tuples(
-            data, names=['ticker', 'field']
-        )
+        data.columns.names = ['ticker', 'field']
         data.index = pd.to_datetime(data.index)
         return data
 
