@@ -28,7 +28,7 @@ class BCon(object):
         # Create a Session
         self.session = blpapi.Session(sessionOptions)
         # initialize logger
-        self.debug = False
+        self.debug = debug
 
     @property
     def debug(self):
@@ -126,6 +126,58 @@ class BCon(object):
         data = DataFrame(data)
         data.columns.names = ['ticker', 'field']
         data.index = pd.to_datetime(data.index)
+        return data
+
+    def ref(self, tickers, flds):
+        """
+        Make a reference data request, get tickers and fields, return pandas
+        dataframe with column of tickers and index of flds
+
+        Parameters
+        ----------
+        tickers: {list, string}
+            String or list of strings corresponding to tickers
+        flds: {list, string}
+            String or list of strings corresponding to FLDS
+        """
+        if type(tickers) is not list:
+            tickers = [tickers]
+        if type(flds) is not list:
+            flds = [flds]
+        # Create and fill the request for the historical data
+        request = self.refDataService.createRequest("ReferenceDataRequest")
+        for t in tickers:
+            request.getElement("securities").appendValue(t)
+        for f in flds:
+            request.getElement("fields").appendValue(f)
+
+        logging.debug("Sending Request:\n %s" % request)
+        # Send the request
+        self.session.sendRequest(request)
+        data = []
+        # Process received events
+        while(True):
+            # We provide timeout to give the chance for Ctrl+C handling:
+            ev = self.session.nextEvent(500)
+            for msg in ev:
+                logging.debug("Message Received:\n %s" % msg)
+                fldData = msg.getElement('securityData')
+                for i in range(fldData.numValues()):
+                    ticker = fldData.getValue(i).getElement("security")\
+                        .getValue()
+                    reqFldsData = fldData.getValue(i).getElement('fieldData')
+                    for j in range(reqFldsData.numElements()):
+                        fld = flds[j]
+                        val = reqFldsData.getElement(fld).getValue()
+                        data.append((fld, ticker, val))
+
+            if ev.eventType() == blpapi.Event.RESPONSE:
+                # Response completely received, so we could exit
+                break
+        data = DataFrame(data)
+        data = data.pivot(0, 1, 2)
+        data.index.name = None
+        data.columns.name = None
         return data
 
     def bdib(self, ticker, startDateTime, endDateTime, eventType='TRADE',
