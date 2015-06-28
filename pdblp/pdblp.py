@@ -71,7 +71,9 @@ class BCon(object):
             periodselection='DAILY'):
         """
         Get tickers and fields, return pandas dataframe with column MultiIndex
-        of tickers and fields
+        of tickers and fields if multiple fields given an Index otherwise.
+        If single field is given DataFrame is ordered in manner or tickers,
+        otherwise MultiIndex is sorted
 
         Parameters
         ----------
@@ -126,6 +128,10 @@ class BCon(object):
         data = DataFrame(data)
         data.columns.names = ['ticker', 'field']
         data.index = pd.to_datetime(data.index)
+        # for single fld drop MultiIndex and return in order tickers appear
+        if len(flds) == 1:
+            data.columns = data.columns.droplevel(-1)
+            data = data.loc[:, tickers]
         return data
 
     def ref(self, tickers, flds):
