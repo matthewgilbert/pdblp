@@ -72,7 +72,7 @@ class BCon(object):
         """
         Get tickers and fields, return pandas dataframe with column MultiIndex
         of tickers and fields if multiple fields given an Index otherwise.
-        If single field is given DataFrame is ordered in manner or tickers,
+        If single field is given DataFrame is ordered same as tickers,
         otherwise MultiIndex is sorted
 
         Parameters
@@ -112,6 +112,8 @@ class BCon(object):
             ev = self.session.nextEvent(500)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
+                if msg.getElement('securityData').hasElement('securityError'):
+                    raise LookupError(msg)
                 ticker = msg.getElement('securityData')\
                     .getElement('security').getValue()
                 fldData = msg.getElement('securityData')\
