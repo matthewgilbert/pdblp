@@ -243,5 +243,34 @@ class BCon(object):
         data = data[flds]
         return data
 
+    def custom_req(self, request):
+        """
+        Utility for sending a predefined request and printing response as well
+        as storing messages in a list, useful for testing
+
+        Parameters
+        ----------
+        request: blpapi.request.Request
+            Request to be sent
+
+        Returns
+        -------
+            List of all messages received
+        """
+        logging.debug("Sending Request:\n %s" % request)
+        self.session.sendRequest(request)
+        messages = []
+        # Process received events
+        while(True):
+            # We provide timeout to give the chance for Ctrl+C handling:
+            ev = self.session.nextEvent(500)
+            for msg in ev:
+                logging.debug("Message Received:\n %s" % msg)
+                messages.append(msg)
+            if ev.eventType() == blpapi.Event.RESPONSE:
+                # Response completely received, so we could exit
+                break
+        return messages
+
     def stop(self):
         self.session.stop()
