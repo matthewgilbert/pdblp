@@ -107,26 +107,34 @@ class BCon(object):
         # defaultdict - later convert to pandas
         data = defaultdict(dict)
         # Process received events
-        while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(500)
-            for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
-                if msg.getElement('securityData').hasElement('securityError'):
-                    raise LookupError(msg)
-                ticker = msg.getElement('securityData')\
-                    .getElement('security').getValue()
-                fldData = msg.getElement('securityData')\
-                    .getElement('fieldData')
-                for i in range(fldData.numValues()):
-                    dt = fldData.getValue(i).getElement(0).getValue()
-                    for j in range(1, fldData.getValue(i).numElements()):
-                        val = fldData.getValue(i).getElement(j).getValue()
-                        data[(ticker, flds[j-1])][dt] = val
+        try:
+            while(True):
+                # We provide timeout to give the chance for Ctrl+C handling:
+                ev = self.session.nextEvent(500)
+                for msg in ev:
+                    logging.debug("Message Received:\n %s" % msg)
+                    if (msg.getElement('securityData')
+                       .hasElement('securityError')):
+                        raise LookupError(msg)
+                    ticker = (msg.getElement('securityData')
+                              .getElement('security').getValue())
+                    fldData = (msg.getElement('securityData')
+                               .getElement('fieldData'))
+                    for i in range(fldData.numValues()):
+                        dt = fldData.getValue(i).getElement(0).getValue()
+                        for j in range(1, fldData.getValue(i).numElements()):
+                            val = fldData.getValue(i).getElement(j).getValue()
+                            data[(ticker, flds[j-1])][dt] = val
 
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completely received, so we could exit
-                break
+                if ev.eventType() == blpapi.Event.RESPONSE:
+                    # Response completely received, so we could exit
+                    break
+        except:
+            # flush event queue
+            while(self.session.tryNextEvent()):
+                pass
+            raise
+
         data = DataFrame(data)
         data.columns.names = ['ticker', 'field']
         data.index = pd.to_datetime(data.index)
@@ -164,24 +172,32 @@ class BCon(object):
         self.session.sendRequest(request)
         data = []
         # Process received events
-        while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(500)
-            for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
-                fldData = msg.getElement('securityData')
-                for i in range(fldData.numValues()):
-                    ticker = fldData.getValue(i).getElement("security")\
-                        .getValue()
-                    reqFldsData = fldData.getValue(i).getElement('fieldData')
-                    for j in range(reqFldsData.numElements()):
-                        fld = flds[j]
-                        val = reqFldsData.getElement(fld).getValue()
-                        data.append((fld, ticker, val))
+        try:
+            while(True):
+                # We provide timeout to give the chance for Ctrl+C handling:
+                ev = self.session.nextEvent(500)
+                for msg in ev:
+                    logging.debug("Message Received:\n %s" % msg)
+                    fldData = msg.getElement('securityData')
+                    for i in range(fldData.numValues()):
+                        ticker = (fldData.getValue(i).getElement("security")
+                                  .getValue())
+                        reqFldsData = (fldData.getValue(i)
+                                       .getElement('fieldData'))
+                        for j in range(reqFldsData.numElements()):
+                            fld = flds[j]
+                            val = reqFldsData.getElement(fld).getValue()
+                            data.append((fld, ticker, val))
 
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completely received, so we could exit
-                break
+                if ev.eventType() == blpapi.Event.RESPONSE:
+                    # Response completely received, so we could exit
+                    break
+        except:
+            # flush event queue
+            while(self.session.tryNextEvent()):
+                pass
+            raise
+
         data = DataFrame(data)
         data = data.pivot(0, 1, 2)
         data.index.name = None
@@ -223,21 +239,29 @@ class BCon(object):
         data = defaultdict(dict)
         # Process received events
         flds = ['open', 'high', 'low', 'close', 'volume']
-        while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(500)
-            for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
-                barTick = msg.getElement('barData').getElement('barTickData')
-                for i in range(barTick.numValues()):
-                    for fld in flds:
-                        dt = barTick.getValue(i).getElement(0).getValue()
-                        val = barTick.getValue(i).getElement(fld).getValue()
-                        data[(fld)][dt] = val
+        try:
+            while(True):
+                # We provide timeout to give the chance for Ctrl+C handling:
+                ev = self.session.nextEvent(500)
+                for msg in ev:
+                    logging.debug("Message Received:\n %s" % msg)
+                    barTick = (msg.getElement('barData')
+                               .getElement('barTickData'))
+                    for i in range(barTick.numValues()):
+                        for fld in flds:
+                            dt = barTick.getValue(i).getElement(0).getValue()
+                            val = (barTick.getValue(i).getElement(fld)
+                                   .getValue())
+                            data[(fld)][dt] = val
 
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completly received, so we could exit
-                break
+                if ev.eventType() == blpapi.Event.RESPONSE:
+                    # Response completly received, so we could exit
+                    break
+        except:
+            # flush event queue
+            while(self.session.tryNextEvent()):
+                pass
+            raise
         data = DataFrame(data)
         data.index = pd.to_datetime(data.index)
         data = data[flds]
@@ -261,15 +285,21 @@ class BCon(object):
         self.session.sendRequest(request)
         messages = []
         # Process received events
-        while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(500)
-            for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
-                messages.append(msg)
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completely received, so we could exit
-                break
+        try:
+            while(True):
+                # We provide timeout to give the chance for Ctrl+C handling:
+                ev = self.session.nextEvent(500)
+                for msg in ev:
+                    logging.debug("Message Received:\n %s" % msg)
+                    messages.append(msg)
+                if ev.eventType() == blpapi.Event.RESPONSE:
+                    # Response completely received, so we could exit
+                    break
+        except:
+            # flush event queue
+            while(self.session.tryNextEvent()):
+                pass
+            raise
         return messages
 
     def stop(self):
