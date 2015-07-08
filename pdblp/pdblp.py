@@ -29,6 +29,8 @@ class BCon(object):
         self.session = blpapi.Session(sessionOptions)
         # initialize logger
         self.debug = debug
+        # used for tracking historical override requests
+        self._corrID = 0
 
     @property
     def debug(self):
@@ -203,9 +205,82 @@ class BCon(object):
         data.index.name = None
         data.columns.name = None
         return data
+        
+    def ref_hist(self, tickers, flds, start_date,
+                 end_date=datetime.date.today().strftime('%Y%m%d')):
+        """
+        Get tickers and fields, periodically override REFERENCE_DATE to create
+        a time series. Return pandas dataframe with column MultiIndex
+        of tickers and fields if multiple fields given an Index otherwise.
+        If single field is given DataFrame is ordered same as tickers,
+        otherwise MultiIndex is sorted
+
+        Parameters
+        ----------
+        tickers: {list, string}
+            String or list of strings corresponding to tickers
+        flds: {list, string}
+            String or list of strings corresponding to FLDS
+        start_date: string
+            String in format YYYYmmdd
+        end_date: string
+            String in format YYYYmmdd
+        """
+        if type(tickers) is not list:
+            tickers = [tickers]
+        if type(flds) is not list:
+            flds = [flds]
+        # Create and fill the request for the historical data
+        request = self.refDataService.createRequest("ReferenceDataRequest")
+        for t in tickers:
+            request.getElement("securities").appendValue(t)
+        for f in flds:
+            request.getElement("fields").appendValue(f)
+        
+        overrides = request.getElement("overrides")
+        dates = pd.date_range(start_date, end_date, freq='b')
+        ovrd = overrides.appendElement()
+        # used for offseting index for dates below
+        ofst = self._corrID + 1
+        for dt in dates:
+            ovrd.setElement("fieldId", "REFERENCE_DATE")
+            ovrd.setElement("value", dt.strftime('%Y%m%d'))
+            self._corrID += 1
+            cid = blpapi.CorrelationId(self._corrID)
+            logging.debug("Sending Request:\n %s" % request)
+            self.session.sendRequest(request, correlationId=cid)
+        data = []
+        # Process received events
+        try:
+            while(True):
+                # We provide timeout to give the chance for Ctrl+C handling:
+                ev = self.session.nextEvent(2000)
+                for msg in ev:
+                    logging.debug("Message Received:\n %s" % msg)
+                    corrID = msg.correlationIds()[0].value()
+                    fldData = msg.getElement('securityData')
+                    for i in range(fldData.numValues()):
+                        tckr = (fldData.getValue(i).getElement("security")
+                                  .getValue())
+                        reqFldsData = (fldData.getValue(i)
+                                       .getElement('fieldData'))
+                        for j in range(reqFldsData.numElements()):
+                            fld = flds[j]
+                            val = reqFldsData.getElement(fld).getValue()
+                            data.append((fld, tckr, val, dates[corrID - ofst]))
+                if ev.eventType() == blpapi.Event.TIMEOUT:
+                    # All events processed (or failed due to timeout), so we could exit
+                    break
+        except:
+            # flush event queue
+            while(self.session.tryNextEvent()):
+                pass
+            raise
+        return data
+
 
     def bdib(self, ticker, startDateTime, endDateTime, eventType='TRADE',
-             interval=1):
+            interval=1):
         """
         Get Open, High, Low, Close, Volume, for a ticker.
         Return pandas dataframe

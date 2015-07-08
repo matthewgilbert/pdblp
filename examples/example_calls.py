@@ -25,3 +25,6 @@ override1 = overrides.appendElement()
 override1.setElement("fieldId", 'REFERENCE_DATE')
 override1.setElement('value', '20150629')
 con.custom_req(request)
+
+# historical reference data request
+con.ref_hist('AUDUSD Curncy', 'SETTLE_DT', '20150625', '20150629')
