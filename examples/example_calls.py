@@ -27,4 +27,7 @@ override1.setElement('value', '20150629')
 con.custom_req(request)
 
 # historical reference data request
-con.ref_hist('AUDUSD Curncy', 'SETTLE_DT', '20150625', '20150629')
+con.ref_hist('AUD1M Curncy', 'DAYS_TO_MTY', '20150625', '20150629')
+con.ref_hist(['AUD1M Curncy', 'NZD1M Curncy'], 'DAYS_TO_MTY', '20150625', '20150629')
+con.ref_hist('AUD1M Curncy', ['DAYS_TO_MTY', 'SETTLE_DT'], '20150625', '20150629')
+con.ref_hist(['AUD1M Curncy', 'NZD1M Curncy'], ['DAYS_TO_MTY', 'SETTLE_DT'], '20150625', '20150629')

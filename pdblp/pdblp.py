@@ -25,12 +25,11 @@ class BCon(object):
         sessionOptions = blpapi.SessionOptions()
         sessionOptions.setServerHost(host)
         sessionOptions.setServerPort(port)
+        self._sessionOptions = sessionOptions
         # Create a Session
         self.session = blpapi.Session(sessionOptions)
         # initialize logger
         self.debug = debug
-        # used for tracking historical override requests
-        self._corrID = 0
 
     @property
     def debug(self):
@@ -67,6 +66,15 @@ class BCon(object):
         # Obtain previously opened service
         self.refDataService = self.session.getService("//blp/refdata")
         self.session.nextEvent()
+        
+    def restart(self):
+        """
+        Restart the blp session
+        """
+        # Recreate a Session
+        self.session = blpapi.Session(self._sessionOptions)
+        self.start()
+        
 
     def bdh(self, tickers, flds, start_date,
             end_date=datetime.date.today().strftime('%Y%m%d'),
@@ -88,7 +96,7 @@ class BCon(object):
         end_date: string
             String in format YYYYmmdd
         """
-        # flush event queue incase previous call errored out
+        # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
             pass
 
@@ -138,7 +146,7 @@ class BCon(object):
         data = DataFrame(data)
         data.columns.names = ['ticker', 'field']
         data.index = pd.to_datetime(data.index)
-        # for single fld drop MultiIndex and return in order tickers appear
+        # for single field drop MultiIndex and return in order tickers appear
         if len(flds) == 1:
             data.columns = data.columns.droplevel(-1)
             data = data.loc[:, tickers]
@@ -156,7 +164,7 @@ class BCon(object):
         flds: {list, string}
             String or list of strings corresponding to FLDS
         """
-        # flush event queue incase previous call errored out
+        # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
             pass
 
@@ -203,11 +211,12 @@ class BCon(object):
         return data
         
     def ref_hist(self, tickers, flds, start_date,
-                 end_date=datetime.date.today().strftime('%Y%m%d')):
+                 end_date=datetime.date.today().strftime('%Y%m%d'),
+                 timeout=2000):
         """
         Get tickers and fields, periodically override REFERENCE_DATE to create
         a time series. Return pandas dataframe with column MultiIndex
-        of tickers and fields if multiple fields given an Index otherwise.
+        of tickers and fields if multiple fields given, Index otherwise.
         If single field is given DataFrame is ordered same as tickers,
         otherwise MultiIndex is sorted
 
@@ -221,7 +230,14 @@ class BCon(object):
             String in format YYYYmmdd
         end_date: string
             String in format YYYYmmdd
+        timeout: int
+            Passed into nextEvent(timeout), number of milliseconds before
+            timeout occurs
         """
+        # correlationIDs should be unique to a session so rather than
+        # managing unique IDs for the duration of the session just restart
+        # a session for each call
+        self.restart()
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
@@ -236,42 +252,42 @@ class BCon(object):
         overrides = request.getElement("overrides")
         dates = pd.date_range(start_date, end_date, freq='b')
         ovrd = overrides.appendElement()
-        # used for offseting index for dates below
-        ofst = self._corrID + 1
         for dt in dates:
             ovrd.setElement("fieldId", "REFERENCE_DATE")
             ovrd.setElement("value", dt.strftime('%Y%m%d'))
-            self._corrID += 1
-            cid = blpapi.CorrelationId(self._corrID)
+            cid = blpapi.CorrelationId(dt)
             logging.debug("Sending Request:\n %s" % request)
             self.session.sendRequest(request, correlationId=cid)
         data = []
         # Process received events
-        try:
-            while(True):
-                # We provide timeout to give the chance for Ctrl+C handling:
-                ev = self.session.nextEvent(2000)
-                for msg in ev:
-                    logging.debug("Message Received:\n %s" % msg)
-                    corrID = msg.correlationIds()[0].value()
-                    fldData = msg.getElement('securityData')
-                    for i in range(fldData.numValues()):
-                        tckr = (fldData.getValue(i).getElement("security")
-                                  .getValue())
-                        reqFldsData = (fldData.getValue(i)
-                                       .getElement('fieldData'))
-                        for j in range(reqFldsData.numElements()):
-                            fld = flds[j]
-                            val = reqFldsData.getElement(fld).getValue()
-                            data.append((fld, tckr, val, dates[corrID - ofst]))
-                if ev.eventType() == blpapi.Event.TIMEOUT:
-                    # All events processed (or failed due to timeout), so we could exit
+        while(True):
+            ev = self.session.nextEvent(timeout)
+            for msg in ev:
+                logging.debug("Message Received:\n %s" % msg)
+                corrID = msg.correlationIds()[0].value()
+                fldData = msg.getElement('securityData')
+                for i in range(fldData.numValues()):
+                    tckr = (fldData.getValue(i).getElement("security")
+                              .getValue())
+                    reqFldsData = (fldData.getValue(i)
+                                   .getElement('fieldData'))
+                    for j in range(reqFldsData.numElements()):
+                        fld = flds[j]
+                        val = reqFldsData.getElement(fld).getValue()
+                        data.append((fld, tckr, val, corrID))
+            if ev.eventType() == blpapi.Event.TIMEOUT:
+                # All events processed
+                if (len(data) / len(flds) / len(tickers))  == len(dates):
                     break
-        except:
-            # flush event queue
-            while(self.session.tryNextEvent()):
-                pass
-            raise
+                else:
+                    raise(RuntimeError("Timeout, increase timeout parameter"))
+        data = pd.DataFrame(data)
+        data.columns = ['field', 'ticker', 'value', 'date']
+        data = data.pivot_table(values='value', index='date',
+                                columns=['ticker', 'field'], aggfunc=lambda x: x)
+        if len(flds) == 1:
+            data.columns = data.columns.droplevel(-1)
+            data = data.loc[:, tickers]
         return data
 
 
@@ -295,7 +311,7 @@ class BCon(object):
         interval: int {1... 1440}
             Length of time bars
         """
-        # flush event queue incase previous call errored out
+        # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
             pass
 
@@ -350,7 +366,7 @@ class BCon(object):
         -------
             List of all messages received
         """
-        # flush event queue incase previous call errored out
+        # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
             pass
 
