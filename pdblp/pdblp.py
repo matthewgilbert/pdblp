@@ -152,10 +152,11 @@ class BCon(object):
             data = data.loc[:, tickers]
         return data
 
-    def ref(self, tickers, flds):
+    def ref(self, tickers, flds, ovrds=[]):
         """
         Make a reference data request, get tickers and fields, return pandas
-        dataframe with column of tickers and index of flds
+        dataframe with column of tickers and index of flds, ordered in same
+        order as tickers and flds
 
         Parameters
         ----------
@@ -163,6 +164,9 @@ class BCon(object):
             String or list of strings corresponding to tickers
         flds: {list, string}
             String or list of strings corresponding to FLDS
+        ovrds: list of tuples
+            List of tuples where each tuple corresponds to the override
+            field and value
         """
         # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
@@ -178,6 +182,13 @@ class BCon(object):
             request.getElement("securities").appendValue(t)
         for f in flds:
             request.getElement("fields").appendValue(f)
+
+        overrides = request.getElement("overrides")
+        for ovrd_fld, ovrd_val in ovrds:
+            ovrd = overrides.appendElement()
+            ovrd.setElement("fieldId", ovrd_fld)
+            ovrd.setElement("value", ovrd_val)
+            
 
         logging.debug("Sending Request:\n %s" % request)
         # Send the request
@@ -208,6 +219,7 @@ class BCon(object):
         data = data.pivot(0, 1, 2)
         data.index.name = None
         data.columns.name = None
+        data = data.loc[flds, tickers]
         return data
         
     def ref_hist(self, tickers, flds, start_date,
