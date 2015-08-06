@@ -17,6 +17,9 @@ con.ref('AUDUSD Curncy', ['SETTLE_DT', 'DAYS_TO_MTY'])
 con.ref(['NZDUSD Curncy', 'AUDUSD Curncy'], ['SETTLE_DT', 'DAYS_TO_MTY'])
 con.ref('AUDUSD Curncy', 'SETTLE_DT', [('REFERENCE_DATE', '20150715')])
 con.ref(['NZDUSD Curncy', 'AUDUSD Curncy'], ['SETTLE_DT', 'DAYS_TO_MTY'], [('REFERENCE_DATE', '20150715')])
+#mutli reference data request
+con.ref('W 1 Comdty', 'FUT_CHAIN')
+con.ref('W 1 Comdty', 'FUT_CHAIN', [('INCLUDE_EXPIRED_CONTRACTS', 'Y')])
 
 # custom request
 request = con.refDataService.createRequest("ReferenceDataRequest")

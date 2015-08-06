@@ -66,7 +66,7 @@ class BCon(object):
         # Obtain previously opened service
         self.refDataService = self.session.getService("//blp/refdata")
         self.session.nextEvent()
-        
+
     def restart(self):
         """
         Restart the blp session
@@ -74,7 +74,6 @@ class BCon(object):
         # Recreate a Session
         self.session = blpapi.Session(self._sessionOptions)
         self.start()
-        
 
     def bdh(self, tickers, flds, start_date,
             end_date=datetime.date.today().strftime('%Y%m%d'),
@@ -188,7 +187,6 @@ class BCon(object):
             ovrd = overrides.appendElement()
             ovrd.setElement("fieldId", ovrd_fld)
             ovrd.setElement("value", ovrd_val)
-            
 
         logging.debug("Sending Request:\n %s" % request)
         # Send the request
@@ -208,7 +206,21 @@ class BCon(object):
                                    .getElement('fieldData'))
                     for j in range(reqFldsData.numElements()):
                         fld = flds[j]
-                        val = reqFldsData.getElement(fld).getValue()
+                        # this is for dealing with requests which return arrays
+                        # of values for a single field
+                        if reqFldsData.getElement(fld).isArray():
+                            val = []
+                            lrng = reqFldsData.getElement(fld).numValues()
+                            for k in range(lrng):
+                                elms = (reqFldsData.getElement(fld).getValue(k)
+                                        .elements())
+                                # if the elements of the array have multiple
+                                # subelements this will just append them all
+                                # into a list
+                                for elm in elms:
+                                    val.append(elm.getValue())
+                        else:
+                            val = reqFldsData.getElement(fld).getValue()
                         data.append((fld, ticker, val))
 
             if ev.eventType() == blpapi.Event.RESPONSE:
@@ -221,7 +233,7 @@ class BCon(object):
         data.columns.name = None
         data = data.loc[flds, tickers]
         return data
-        
+
     def ref_hist(self, tickers, flds, start_date,
                  end_date=datetime.date.today().strftime('%Y%m%d'),
                  timeout=2000):
@@ -260,7 +272,7 @@ class BCon(object):
             request.getElement("securities").appendValue(t)
         for f in flds:
             request.getElement("fields").appendValue(f)
-        
+
         overrides = request.getElement("overrides")
         dates = pd.date_range(start_date, end_date, freq='b')
         ovrd = overrides.appendElement()
@@ -280,7 +292,7 @@ class BCon(object):
                 fldData = msg.getElement('securityData')
                 for i in range(fldData.numValues()):
                     tckr = (fldData.getValue(i).getElement("security")
-                              .getValue())
+                            .getValue())
                     reqFldsData = (fldData.getValue(i)
                                    .getElement('fieldData'))
                     for j in range(reqFldsData.numElements()):
@@ -289,22 +301,22 @@ class BCon(object):
                         data.append((fld, tckr, val, corrID))
             if ev.eventType() == blpapi.Event.TIMEOUT:
                 # All events processed
-                if (len(data) / len(flds) / len(tickers))  == len(dates):
+                if (len(data) / len(flds) / len(tickers)) == len(dates):
                     break
                 else:
                     raise(RuntimeError("Timeout, increase timeout parameter"))
         data = pd.DataFrame(data)
         data.columns = ['field', 'ticker', 'value', 'date']
         data = data.pivot_table(values='value', index='date',
-                                columns=['ticker', 'field'], aggfunc=lambda x: x)
+                                columns=['ticker', 'field'],
+                                aggfunc=lambda x: x)
         if len(flds) == 1:
             data.columns = data.columns.droplevel(-1)
             data = data.loc[:, tickers]
         return data
 
-
     def bdib(self, ticker, startDateTime, endDateTime, eventType='TRADE',
-            interval=1):
+             interval=1):
         """
         Get Open, High, Low, Close, Volume, for a ticker.
         Return pandas dataframe
