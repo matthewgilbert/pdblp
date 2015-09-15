@@ -77,7 +77,8 @@ class BCon(object):
 
     def bdh(self, tickers, flds, start_date,
             end_date=datetime.date.today().strftime('%Y%m%d'),
-            periodselection='DAILY'):
+            periodselection='DAILY',
+            ovrds=[]):
         """
         Get tickers and fields, return pandas dataframe with column MultiIndex
         of tickers and fields if multiple fields given an Index otherwise.
@@ -94,6 +95,9 @@ class BCon(object):
             String in format YYYYmmdd
         end_date: string
             String in format YYYYmmdd
+        ovrds: list of tuples
+            List of tuples where each tuple corresponds to the override
+            field and value
         """
         # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
@@ -113,6 +117,12 @@ class BCon(object):
         request.set("periodicitySelection", periodselection)
         request.set("startDate", start_date)
         request.set("endDate", end_date)
+
+        overrides = request.getElement("overrides")
+        for ovrd_fld, ovrd_val in ovrds:
+            ovrd = overrides.appendElement()
+            ovrd.setElement("fieldId", ovrd_fld)
+            ovrd.setElement("value", ovrd_val)
 
         logging.debug("Sending Request:\n %s" % request)
         # Send the request
