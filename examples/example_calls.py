@@ -5,10 +5,10 @@ con = pdblp.BCon(debug=True)
 con.start()
 
 # simple bdh call
-con.bdh('SPY Equity', 'PX_LAST', '20150629', '20150630')
+con.bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
 
 # two fields returns MultiIndex
-con.bdh('SPY Equity', ['PX_LAST', 'VOLUME'], '20150629', '20150630')
+con.bdh('SPY US Equity', ['PX_LAST', 'VOLUME'], '20150629', '20150630')
 
 # bdh with override
 con.bdh('MPMIEZMA Index', 'PX_LAST', '20150101', '20150830')
