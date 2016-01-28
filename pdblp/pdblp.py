@@ -19,7 +19,8 @@ class BCon(object):
         port: int
             Port to connect to
         debug: Boolean {True, False}
-            Boolean corresponding to whether to log requests messages to stdout
+            Boolean corresponding to whether to log Bloomberg Open API request
+            and response messages to stdout
         """
         # Fill SessionOptions
         sessionOptions = blpapi.SessionOptions()
