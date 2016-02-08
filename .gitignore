@@ -1,2 +1,4 @@
 *.pyc
 pdblp.egg-info
+doc/_build/
+dist/

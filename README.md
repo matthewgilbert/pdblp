@@ -14,4 +14,13 @@ The library borrows heavily from a similar package available
 ##Requires
 
 [Bloomberg Open API](http://www.openbloomberg.com/open-api/) 
+
 [pandas](http://pandas.pydata.org/)
+
+##Installation
+To install pdblp clone this repository and pip install the package, i.e.
+
+```
+git clone https://github.com/matthewgilbert/pdblp.git
+pip install -e pdblp
+```

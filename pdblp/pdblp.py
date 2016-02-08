@@ -34,6 +34,10 @@ class BCon(object):
 
     @property
     def debug(self):
+        """
+        When True, print all Bloomberg Open API request and response messages
+        to stdout
+        """
         return self._debug
 
     @debug.setter
