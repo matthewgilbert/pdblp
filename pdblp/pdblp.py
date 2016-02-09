@@ -9,8 +9,7 @@ from pandas import DataFrame
 class BCon(object):
     def __init__(self, host='localhost', port=8194, debug=False):
         """
-        Starting bloomberg API session
-        close with session.close()
+        Create an object which manages connection to the Bloomberg API session
 
         Parameters
         ----------
@@ -425,4 +424,7 @@ class BCon(object):
         return messages
 
     def stop(self):
+        """
+        Close the blp session
+        """
         self.session.stop()
