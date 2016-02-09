@@ -26,7 +26,7 @@ pip install -e pdblp
 ```
 
 ##Documentation
-Once `pdblp` has been installed documentation can be built using
+Once `pdblp` has been installed, documentation can be built using
 
 ```
 cd doc
@@ -34,5 +34,5 @@ make html
 ```
 
 and then viewed in ./doc/_build. Before building this ensure that you are
-logged into a Bloomberg terminal as this this required for building many of the
+logged into a Bloomberg terminal as this is required for building many of the
 examples.
