@@ -3,15 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pdblp's documentation!
-=================================
+About pdblp
+===========
 
 pdblp attempts to provide a simple pandas wrapper around the Bloomberg Open
 API, specifically to give access to historical market data and reference data.
 This documentation provides a simple tutorial as well as a reference API.
 
 .. toctree::
-   :maxdepth: 2
+   :titlesonly:
 
    tutorial
    api
