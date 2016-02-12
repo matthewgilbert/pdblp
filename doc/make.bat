@@ -6,6 +6,9 @@ if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
 set BUILDDIR=_build
+set GITHUB_REPO=https://github.com/matthewgilbert/pdblp.git
+set GITHUB_PAGES_BRANCH=gh-pages:gh-pages
+
 set ALLSPHINXOPTS=-d %BUILDDIR%/doctrees %SPHINXOPTS% .
 set I18NSPHINXOPTS=%SPHINXOPTS% .
 if NOT "%PAPER%" == "" (
@@ -19,6 +22,7 @@ if "%1" == "help" (
 	:help
 	echo.Please use `make ^<target^>` where ^<target^> is one of
 	echo.  html       to make standalone HTML files
+    echo.  github     deploy html to gh-pages
 	echo.  dirhtml    to make HTML files named index.html in directories
 	echo.  singlehtml to make a single large HTML file
 	echo.  pickle     to make pickle files
@@ -77,6 +81,18 @@ if "%1" == "html" (
 	if errorlevel 1 exit /b 1
 	echo.
 	echo.Build finished. The HTML pages are in %BUILDDIR%/html.
+	goto end
+)
+
+if "%1" == "github" (
+    copy NUL "%BUILDDIR%/html/.nojekyll"
+	if errorlevel 1 exit /b 1
+	ghp-import -m "Sphinx Documentation" %BUILDDIR%/html
+    if errorlevel 1 exit /b 1
+    git push -f %GITHUB_REPO% %GITHUB_PAGES_BRANCH%
+    if errorlevel 1 exit /b 1
+	echo.
+	echo.gh-pages written
 	goto end
 )
 
