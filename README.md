@@ -36,3 +36,5 @@ make html
 and then viewed in ./doc/_build. Before building this ensure that you are
 logged into a Bloomberg terminal as this is required for building many of the
 examples.
+
+An online version of the documentation can be view at https://matthewgilbert.github.io/pdblp/
