@@ -40,7 +40,7 @@
             
   <div class="section" id="tutorial-on-using-pdblp">
 <h1>Tutorial on using pdblp<a class="headerlink" href="#tutorial-on-using-pdblp" title="Permalink to this headline">¶</a></h1>
-<p>This tutorial provides some simple use cases for pdblp. To start with, import
+<p>This tutorial provides some simple use cases for <code class="docutils literal"><span class="pre">pdblp</span></code> . To start with, import
 the library and create a <code class="docutils literal"><span class="pre">BCon()</span></code> object</p>
 <div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">pdblp</span>
 
@@ -98,7 +98,7 @@ should be able to to start a connection as follows</p>
 </div>
 <p>Notice that when <code class="docutils literal"><span class="pre">con.debug</span> <span class="pre">==</span> <span class="pre">True</span></code> that the Response and Request messages
 are printed to stdout. This can be quite useful for debugging but gets
-annoying for normal use, so let&#8217;s turn in off and get some more data. This time
+annoying for normal use, so let&#8217;s turn it off and get some more data. This time
 we request two fields which returns a DataFrame with a MultiIndex</p>
 <div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [5]: </span><span class="n">con</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
 
@@ -137,17 +137,17 @@ usages are shown below</p>
 <div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [9]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">)</span>
 <span class="gh">Out[9]: </span><span class="go"></span>
 <span class="go">          AUDUSD Curncy</span>
-<span class="go">SETTLE_DT    2016-02-11</span>
+<span class="go">SETTLE_DT    2016-02-16</span>
 
 <span class="gp">In [10]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">([</span><span class="s1">&#39;NZDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">],</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">)</span>
 <span class="gh">Out[10]: </span><span class="go"></span>
 <span class="go">          NZDUSD Curncy AUDUSD Curncy</span>
-<span class="go">SETTLE_DT    2016-02-11    2016-02-11</span>
+<span class="go">SETTLE_DT    2016-02-16    2016-02-16</span>
 
 <span class="gp">In [11]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">])</span>
 <span class="gh">Out[11]: </span><span class="go"></span>
 <span class="go">            AUDUSD Curncy</span>
-<span class="go">SETTLE_DT      2016-02-11</span>
+<span class="go">SETTLE_DT      2016-02-16</span>
 <span class="go">DAYS_TO_MTY             0</span>
 
 <span class="gp">In [12]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">([</span><span class="s1">&#39;NZDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">],</span>
@@ -155,7 +155,7 @@ usages are shown below</p>
 <span class="gp">   ....: </span>
 <span class="gh">Out[12]: </span><span class="go"></span>
 <span class="go">            NZDUSD Curncy AUDUSD Curncy</span>
-<span class="go">SETTLE_DT      2016-02-11    2016-02-11</span>
+<span class="go">SETTLE_DT      2016-02-16    2016-02-16</span>
 <span class="go">DAYS_TO_MTY             0             0</span>
 
 <span class="gp">In [13]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span>
@@ -250,7 +250,7 @@ most users</p>
 <span class="gp">In [24]: </span><span class="n">request</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;fields&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">)</span>
 
 <span class="gp">In [25]: </span><span class="n">con</span><span class="o">.</span><span class="n">custom_req</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
-<span class="gh">Out[25]: </span><span class="go">[&lt;blpapi.message.Message at 0x85286a0&gt;]</span>
+<span class="gh">Out[25]: </span><span class="go">[&lt;blpapi.message.Message at 0x86fb9e8&gt;]</span>
 
 <span class="gp">In [26]: </span><span class="n">overrides</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">getElement</span><span class="p">(</span><span class="s1">&#39;overrides&#39;</span><span class="p">)</span>
 

@@ -1,7 +1,7 @@
 Tutorial on using pdblp
 =======================
 
-This tutorial provides some simple use cases for pdblp. To start with, import
+This tutorial provides some simple use cases for ``pdblp`` . To start with, import
 the library and create a ``BCon()`` object
 
 .. ipython::
@@ -68,7 +68,7 @@ To get some historical data, we can call ``bdh()``
 
 Notice that when ``con.debug == True`` that the Response and Request messages
 are printed to stdout. This can be quite useful for debugging but gets
-annoying for normal use, so let's turn in off and get some more data. This time
+annoying for normal use, so let's turn it off and get some more data. This time
 we request two fields which returns a DataFrame with a MultiIndex
 
 .. ipython:: python
