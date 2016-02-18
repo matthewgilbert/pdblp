@@ -132,6 +132,22 @@ over large date ranges.
                  ['DAYS_TO_MTY', 'SETTLE_DT'],
                  '20150625', '20150629')
 
+A useful trick to avoid throttling your connection when querying large data or
+to ensure you can reproduce your results without a connection in the future is
+to make use of the excellent ``joblib`` library. For example
+
+.. ipython:: python
+    
+    import joblib
+    import shutil
+    from tempfile import mkdtemp
+    temp_dir = mkdtemp()
+    cacher = joblib.Memory(temp_dir)
+    bdh = cacher.cache(con.bdh, ignore=['self'])
+    bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
+    bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
+    shutil.rmtree(temp_dir)
+                 
 The ``custom_req()`` method can also be useful for prototyping requests
 which are not handled by other methods, however will not be of much use to
 most users
