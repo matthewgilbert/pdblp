@@ -1,0 +1,361 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tutorial on using pdblp &mdash; pdblp 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pdblp 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="About pdblp" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tutorial-on-using-pdblp">
+<h1>Tutorial on using pdblp<a class="headerlink" href="#tutorial-on-using-pdblp" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial provides some simple use cases for <code class="docutils literal"><span class="pre">pdblp</span></code> . To start with, import
+the library and create a <code class="docutils literal"><span class="pre">BCon()</span></code> object</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">pdblp</span>
+
+<span class="gp">In [2]: </span><span class="n">con</span> <span class="o">=</span> <span class="n">pdblp</span><span class="o">.</span><span class="n">BCon</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Make sure that you are logged in to a Bloomberg terminal, after which you
+should be able to to start a connection as follows</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [3]: </span><span class="n">con</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To get some historical data, we can call <code class="docutils literal"><span class="pre">bdh()</span></code></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [4]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">,</span> <span class="s1">&#39;20150630&#39;</span><span class="p">)</span>
+<span class="go">DEBUG:root:Sending Request:</span>
+<span class="go"> HistoricalDataRequest = {</span>
+<span class="go">    securities[] = {</span>
+<span class="go">        &quot;SPY US Equity&quot;</span>
+<span class="go">    }</span>
+<span class="go">    fields[] = {</span>
+<span class="go">        &quot;PX_LAST&quot;</span>
+<span class="go">    }</span>
+<span class="go">    periodicityAdjustment = ACTUAL</span>
+<span class="go">    periodicitySelection = DAILY</span>
+<span class="go">    startDate = &quot;20150629&quot;</span>
+<span class="go">    endDate = &quot;20150630&quot;</span>
+<span class="go">    overrides[] = {</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+<span class="go">DEBUG:root:Message Received:</span>
+<span class="go"> HistoricalDataResponse = {</span>
+<span class="go">    securityData = {</span>
+<span class="go">        security = &quot;SPY US Equity&quot;</span>
+<span class="go">        eidData[] = {</span>
+<span class="go">        }</span>
+<span class="go">        sequenceNumber = 0</span>
+<span class="go">        fieldExceptions[] = {</span>
+<span class="go">        }</span>
+<span class="go">        fieldData[] = {</span>
+<span class="go">            fieldData = {</span>
+<span class="go">                date = 2015-06-29</span>
+<span class="go">                PX_LAST = 205.420000</span>
+<span class="go">            }</span>
+<span class="go">            fieldData = {</span>
+<span class="go">                date = 2015-06-30</span>
+<span class="go">                PX_LAST = 205.850000</span>
+<span class="go">            }</span>
+<span class="go">        }</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+<span class="gh">Out[4]: </span><span class="go"></span>
+<span class="go">ticker      SPY US Equity</span>
+<span class="go">2015-06-29         205.42</span>
+<span class="go">2015-06-30         205.85</span>
+</pre></div>
+</div>
+<p>Notice that when <code class="docutils literal"><span class="pre">con.debug</span> <span class="pre">==</span> <span class="pre">True</span></code> that the Response and Request messages
+are printed to stdout. This can be quite useful for debugging but gets
+annoying for normal use, so let&#8217;s turn it off and get some more data. This time
+we request two fields which returns a DataFrame with a MultiIndex</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [5]: </span><span class="n">con</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="gp">In [6]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;VOLUME&#39;</span><span class="p">],</span> <span class="s1">&#39;20150629&#39;</span><span class="p">,</span>
+<span class="gp">   ...: </span>        <span class="s1">&#39;20150630&#39;</span><span class="p">)</span>
+<span class="gp">   ...: </span>
+<span class="gh">Out[6]: </span><span class="go"></span>
+<span class="go">ticker     SPY US Equity           </span>
+<span class="go">field            PX_LAST     VOLUME</span>
+<span class="go">2015-06-29        205.42  202621332</span>
+<span class="go">2015-06-30        205.85  182925106</span>
+</pre></div>
+</div>
+<p>You can also override different <code class="docutils literal"><span class="pre">FLDS</span></code>&#8216;s, for example</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [7]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;MPMIEZMA Index&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;20150101&#39;</span><span class="p">,</span> <span class="s1">&#39;20150830&#39;</span><span class="p">)</span>
+<span class="gh">Out[7]: </span><span class="go"></span>
+<span class="go">ticker      MPMIEZMA Index</span>
+<span class="go">2015-01-31            51.0</span>
+<span class="go">2015-02-28            51.0</span>
+<span class="go">2015-03-31            52.2</span>
+<span class="go">2015-04-30            52.0</span>
+<span class="go">2015-05-31            52.2</span>
+<span class="go">2015-06-30            52.5</span>
+<span class="go">2015-07-31            52.4</span>
+
+<span class="gp">In [8]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;MPMIEZMA Index&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;20150101&#39;</span><span class="p">,</span> <span class="s1">&#39;20150830&#39;</span><span class="p">,</span>
+<span class="gp">   ...: </span>        <span class="n">ovrds</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;RELEASE_STAGE_OVERRIDE&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">)])</span>
+<span class="gp">   ...: </span>
+<span class="gh">Out[8]: </span><span class="go"></span>
+<span class="go">ticker      MPMIEZMA Index</span>
+<span class="go">2015-04-30            51.9</span>
+</pre></div>
+</div>
+<p>The libary also contains functions for accessing reference data, a variety of
+usages are shown below</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [9]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">)</span>
+<span class="gh">Out[9]: </span><span class="go"></span>
+<span class="go">          AUDUSD Curncy</span>
+<span class="go">SETTLE_DT    2016-02-23</span>
+
+<span class="gp">In [10]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">([</span><span class="s1">&#39;NZDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">],</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">)</span>
+<span class="gh">Out[10]: </span><span class="go"></span>
+<span class="go">          NZDUSD Curncy AUDUSD Curncy</span>
+<span class="go">SETTLE_DT    2016-02-23    2016-02-23</span>
+
+<span class="gp">In [11]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">])</span>
+<span class="gh">Out[11]: </span><span class="go"></span>
+<span class="go">            AUDUSD Curncy</span>
+<span class="go">SETTLE_DT      2016-02-23</span>
+<span class="go">DAYS_TO_MTY             0</span>
+
+<span class="gp">In [12]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">([</span><span class="s1">&#39;NZDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">],</span>
+<span class="gp">   ....: </span>        <span class="p">[</span><span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">])</span>
+<span class="gp">   ....: </span>
+<span class="gh">Out[12]: </span><span class="go"></span>
+<span class="go">            NZDUSD Curncy AUDUSD Curncy</span>
+<span class="go">SETTLE_DT      2016-02-23    2016-02-23</span>
+<span class="go">DAYS_TO_MTY             0             0</span>
+
+<span class="gp">In [13]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span>
+<span class="gp">   ....: </span>        <span class="p">[(</span><span class="s1">&#39;REFERENCE_DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;20150715&#39;</span><span class="p">)])</span>
+<span class="gp">   ....: </span>
+<span class="gh">Out[13]: </span><span class="go"></span>
+<span class="go">          AUDUSD Curncy</span>
+<span class="go">SETTLE_DT    2015-07-17</span>
+
+<span class="gp">In [14]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">([</span><span class="s1">&#39;NZDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">],</span>
+<span class="gp">   ....: </span>        <span class="p">[</span><span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">],</span>
+<span class="gp">   ....: </span>        <span class="p">[(</span><span class="s1">&#39;REFERENCE_DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;20150715&#39;</span><span class="p">)])</span>
+<span class="gp">   ....: </span>
+<span class="gh">Out[14]: </span><span class="go"></span>
+<span class="go">            NZDUSD Curncy AUDUSD Curncy</span>
+<span class="go">SETTLE_DT      2015-07-17    2015-07-17</span>
+<span class="go">DAYS_TO_MTY             0             0</span>
+</pre></div>
+</div>
+<p>Reference requests which return a list are also supported, these return a
+DataFrame where each element is a list</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [15]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;W 1 Comdty&#39;</span><span class="p">,</span> <span class="s1">&#39;FUT_CHAIN&#39;</span><span class="p">,</span>
+<span class="gp">   ....: </span>             <span class="p">[(</span><span class="s1">&#39;INCLUDE_EXPIRED_CONTRACTS&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">)])</span>
+<span class="gp">   ....: </span>
+
+<span class="gp">In [16]: </span><span class="n">df</span>
+<span class="gh">Out[16]: </span><span class="go"></span>
+<span class="go">                                                  W 1 Comdty</span>
+<span class="go">FUT_CHAIN  [W N59 Comdty, W U59 Comdty, W Z59 Comdty, W H...</span>
+
+<span class="gp">In [17]: </span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gh">Out[17]: </span><span class="go">[&#39;W U59 Comdty&#39;, &#39;W Z59 Comdty&#39;, &#39;W H60 Comdty&#39;, &#39;W K60 Comdty&#39;]</span>
+</pre></div>
+</div>
+<p>There are some types of reference data which cannot be downloaded in batch
+but support overriding the reference date. For this type of data, <code class="docutils literal"><span class="pre">ref_hist()</span></code>
+is useful to sequentially override the reference date to generate a time
+series. A word of caution, under the hood this is making a number of
+<code class="docutils literal"><span class="pre">ReferenceDataRequest</span></code> s and thus can throttle your daily data limits if queried
+over large date ranges.</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [18]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref_hist</span><span class="p">(</span><span class="s1">&#39;AUD1M Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span>
+<span class="gp">   ....: </span>             <span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">)</span>
+<span class="gp">   ....: </span>
+<span class="gh">Out[18]: </span><span class="go"></span>
+<span class="go">ticker      AUD1M Curncy</span>
+<span class="go">date                    </span>
+<span class="go">2015-06-25            30</span>
+<span class="go">2015-06-26            31</span>
+<span class="go">2015-06-29            34</span>
+
+<span class="gp">In [19]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref_hist</span><span class="p">([</span><span class="s1">&#39;AUD1M Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;NZD1M Curncy&#39;</span><span class="p">],</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span>
+<span class="gp">   ....: </span>              <span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">)</span>
+<span class="gp">   ....: </span>
+<span class="gh">Out[19]: </span><span class="go"></span>
+<span class="go">ticker      AUD1M Curncy  NZD1M Curncy</span>
+<span class="go">date                                  </span>
+<span class="go">2015-06-25            30            30</span>
+<span class="go">2015-06-26            31            31</span>
+<span class="go">2015-06-29            34            33</span>
+
+<span class="gp">In [20]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref_hist</span><span class="p">(</span><span class="s1">&#39;AUD1M Curncy&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">],</span>
+<span class="gp">   ....: </span>             <span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">)</span>
+<span class="gp">   ....: </span>
+<span class="gh">Out[20]: </span><span class="go"></span>
+<span class="go">ticker     AUD1M Curncy            </span>
+<span class="go">field       DAYS_TO_MTY   SETTLE_DT</span>
+<span class="go">date                               </span>
+<span class="go">2015-06-25           30  2015-07-29</span>
+<span class="go">2015-06-26           31  2015-07-31</span>
+<span class="go">2015-06-29           34  2015-08-04</span>
+
+<span class="gp">In [21]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref_hist</span><span class="p">([</span><span class="s1">&#39;AUD1M Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;NZD1M Curncy&#39;</span><span class="p">],</span>
+<span class="gp">   ....: </span>             <span class="p">[</span><span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">],</span>
+<span class="gp">   ....: </span>             <span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">)</span>
+<span class="gp">   ....: </span>
+<span class="gh">Out[21]: </span><span class="go"></span>
+<span class="go">ticker     AUD1M Curncy             NZD1M Curncy            </span>
+<span class="go">field       DAYS_TO_MTY   SETTLE_DT  DAYS_TO_MTY   SETTLE_DT</span>
+<span class="go">date                                                        </span>
+<span class="go">2015-06-25           30  2015-07-29           30  2015-07-29</span>
+<span class="go">2015-06-26           31  2015-07-31           31  2015-07-31</span>
+<span class="go">2015-06-29           34  2015-08-04           33  2015-08-03</span>
+</pre></div>
+</div>
+<p>A useful trick to avoid throttling your connection when querying large data or
+to ensure you can reproduce your results without a connection in the future is
+to make use of the excellent <code class="docutils literal"><span class="pre">joblib</span></code> library. For example</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [22]: </span><span class="kn">import</span> <span class="nn">joblib</span>
+
+<span class="gp">In [23]: </span><span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="gp">In [24]: </span><span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkdtemp</span>
+
+<span class="gp">In [25]: </span><span class="n">temp_dir</span> <span class="o">=</span> <span class="n">mkdtemp</span><span class="p">()</span>
+
+<span class="gp">In [26]: </span><span class="n">cacher</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">Memory</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">)</span>
+
+<span class="gp">In [27]: </span><span class="n">bdh</span> <span class="o">=</span> <span class="n">cacher</span><span class="o">.</span><span class="n">cache</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;self&#39;</span><span class="p">])</span>
+
+<span class="gp">In [28]: </span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">,</span> <span class="s1">&#39;20150630&#39;</span><span class="p">)</span>
+<span class="go">________________________________________________________________________________</span>
+<span class="go">[Memory] Calling pdblp.pdblp.BCon.bdh...</span>
+<span class="go">bdh(&#39;SPY US Equity&#39;, &#39;PX_LAST&#39;, &#39;20150629&#39;, &#39;20150630&#39;)</span>
+<span class="go">______________________________________________________________bdh - 0.0s, 0.0min</span>
+<span class="gh">Out[28]: </span><span class="go"></span>
+<span class="go">ticker      SPY US Equity</span>
+<span class="go">2015-06-29         205.42</span>
+<span class="go">2015-06-30         205.85</span>
+
+<span class="gp">In [29]: </span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">,</span> <span class="s1">&#39;20150630&#39;</span><span class="p">)</span>
+<span class="gh">Out[29]: </span><span class="go"></span>
+<span class="go">ticker      SPY US Equity</span>
+<span class="go">2015-06-29         205.42</span>
+<span class="go">2015-06-30         205.85</span>
+
+<span class="gp">In [30]: </span><span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">custom_req()</span></code> method can also be useful for prototyping requests
+which are not handled by other methods, however will not be of much use to
+most users</p>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [31]: </span><span class="n">request</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">refDataService</span><span class="o">.</span><span class="n">createRequest</span><span class="p">(</span><span class="s2">&quot;ReferenceDataRequest&quot;</span><span class="p">)</span>
+
+<span class="gp">In [32]: </span><span class="n">request</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;securities&#39;</span><span class="p">,</span> <span class="s1">&#39;AUD1M Curncy&#39;</span><span class="p">)</span>
+
+<span class="gp">In [33]: </span><span class="n">request</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;fields&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">)</span>
+
+<span class="gp">In [34]: </span><span class="n">con</span><span class="o">.</span><span class="n">custom_req</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+<span class="gh">Out[34]: </span><span class="go">[&lt;blpapi.message.Message at 0x820f908&gt;]</span>
+
+<span class="gp">In [35]: </span><span class="n">overrides</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">getElement</span><span class="p">(</span><span class="s1">&#39;overrides&#39;</span><span class="p">)</span>
+
+<span class="gp">In [36]: </span><span class="n">override1</span> <span class="o">=</span> <span class="n">overrides</span><span class="o">.</span><span class="n">appendElement</span><span class="p">()</span>
+
+<span class="gp">In [37]: </span><span class="n">override1</span><span class="o">.</span><span class="n">setElement</span><span class="p">(</span><span class="s2">&quot;fieldId&quot;</span><span class="p">,</span> <span class="s1">&#39;REFERENCE_DATE&#39;</span><span class="p">)</span>
+
+<span class="gp">In [38]: </span><span class="n">override1</span><span class="o">.</span><span class="n">setElement</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">)</span>
+
+<span class="gp">In [39]: </span><span class="n">msg</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">custom_req</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
+
+<span class="gp">In [40]: </span><span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">ReferenceDataResponse = {</span>
+<span class="go">    securityData[] = {</span>
+<span class="go">        securityData = {</span>
+<span class="go">            security = &quot;AUD1M Curncy&quot;</span>
+<span class="go">            eidData[] = {</span>
+<span class="go">            }</span>
+<span class="go">            fieldExceptions[] = {</span>
+<span class="go">            }</span>
+<span class="go">            sequenceNumber = 0</span>
+<span class="go">            fieldData = {</span>
+<span class="go">                DAYS_TO_MTY = 34</span>
+<span class="go">            }</span>
+<span class="go">        }</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Tutorial on using pdblp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Matthew Gilbert.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
