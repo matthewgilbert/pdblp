@@ -78,7 +78,7 @@ class BCon(object):
         # Recreate a Session
         self.session = blpapi.Session(self._sessionOptions)
         self.start()
-        
+
     def _create_req(self, rtype, tickers, flds, ovrds, setvals):
         # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
@@ -97,7 +97,7 @@ class BCon(object):
             ovrd = overrides.appendElement()
             ovrd.setElement("fieldId", ovrd_fld)
             ovrd.setElement("value", ovrd_val)
-            
+
         return request
 
     def bdh(self, tickers, flds, start_date,
@@ -124,7 +124,7 @@ class BCon(object):
             List of tuples where each tuple corresponds to the override
             field and value
         """
-        
+
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
@@ -148,19 +148,18 @@ class BCon(object):
             ev = self.session.nextEvent(500)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
-                if (msg.getElement('securityData')
-                   .hasElement('securityError')):
-                    raise LookupError(msg)
-                ticker = (msg.getElement('securityData')
-                          .getElement('security').getValue())
-                fldData = (msg.getElement('securityData')
-                           .getElement('fieldData'))
-                for i in range(fldData.numValues()):
-                    dt = fldData.getValue(i).getElement(0).getValue()
-                    for j in range(1, fldData.getValue(i).numElements()):
-                        val = fldData.getValue(i).getElement(j).getValue()
-                        data[(ticker, flds[j-1])][dt] = val
-
+                if msg.getElement('securityData').hasElement('securityError') or (msg.getElement('securityData').getElement("fieldExceptions").numValues() > 0):  # NOQA
+                    raise Exception(msg)
+                ticker = msg.getElement('securityData').getElement('security').getValue()  # NOQA
+                fldDatas = msg.getElement('securityData').getElement('fieldData')  # NOQA
+                for fd in fldDatas.values():
+                    dt = fd.getElement('date').getValue()
+                    for element in fd.elements():
+                        fname = str(element.name())
+                        if fname == "date":
+                            continue
+                        val = element.getValue()
+                        data[(ticker, fname)][dt] = val
             if ev.eventType() == blpapi.Event.RESPONSE:
                 # Response completely received, so we could exit
                 break
@@ -190,7 +189,7 @@ class BCon(object):
             List of tuples where each tuple corresponds to the override
             field and value
         """
-        
+
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
@@ -211,10 +210,8 @@ class BCon(object):
                 logging.debug("Message Received:\n %s" % msg)
                 fldData = msg.getElement('securityData')
                 for i in range(fldData.numValues()):
-                    ticker = (fldData.getValue(i).getElement("security")
-                              .getValue())
-                    reqFldsData = (fldData.getValue(i)
-                                   .getElement('fieldData'))
+                    ticker = (fldData.getValue(i).getElement("security").getValue())  # NOQA
+                    reqFldsData = (fldData.getValue(i).getElement('fieldData'))
                     for j in range(reqFldsData.numElements()):
                         fld = flds[j]
                         # this is for dealing with requests which return arrays
@@ -223,8 +220,7 @@ class BCon(object):
                             val = []
                             lrng = reqFldsData.getElement(fld).numValues()
                             for k in range(lrng):
-                                elms = (reqFldsData.getElement(fld).getValue(k)
-                                        .elements())
+                                elms = (reqFldsData.getElement(fld).getValue(k).elements())  # NOQA
                                 # if the elements of the array have multiple
                                 # subelements this will just append them all
                                 # into a list
@@ -302,10 +298,8 @@ class BCon(object):
                 corrID = msg.correlationIds()[0].value()
                 fldData = msg.getElement('securityData')
                 for i in range(fldData.numValues()):
-                    tckr = (fldData.getValue(i).getElement("security")
-                            .getValue())
-                    reqFldsData = (fldData.getValue(i)
-                                   .getElement('fieldData'))
+                    tckr = (fldData.getValue(i).getElement("security").getValue())  # NOQA
+                    reqFldsData = (fldData.getValue(i).getElement('fieldData'))
                     for j in range(reqFldsData.numElements()):
                         fld = flds[j]
                         val = reqFldsData.getElement(fld).getValue()
