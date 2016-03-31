@@ -6,9 +6,9 @@ The standard Bloomberg API provides an extensive set of features for building
 applications on top of however does not provide easy and interactive access to
 data. This package provides several functions for accessing historical market
 data and reference data. A simple set of examples is available
-[here](/examples). In theory this should work on both Windows and Linux
-connecting to Bloomberg Server API however this has only been tested using
-Windows and the Desktop API.
+[here](https://matthewgilbert.github.io/pdblp/tutorial.html).
+In theory this should work on both Windows and Linux connecting to Bloomberg
+Server API however this has only been tested using Windows and the Desktop API.
 
 The library borrows heavily from a similar package available
 [here](https://github.com/kyuni22/pybbg)
@@ -24,7 +24,7 @@ To install pdblp clone this repository and pip install the package, i.e.
 
 ```
 git clone https://github.com/matthewgilbert/pdblp.git
-pip install pdblp
+pip install -e pdblp
 ```
 
 ##Documentation
