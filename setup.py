@@ -3,6 +3,7 @@
 from setuptools import setup
 import re
 
+# https://stackoverflow.com/questions/458550/standard-way-to-embed-version-into-python-package#7071358
 VERSIONFILE="pdblp/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
 VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
