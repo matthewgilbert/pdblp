@@ -15,7 +15,7 @@ The library borrows heavily from a similar package available
 
 ##Requires
 
-[Bloomberg Open API](http://www.openbloomberg.com/open-api/) 
+[Bloomberg Open API](http://www.bloomberglabs.com/api/) 
 
 [pandas](http://pandas.pydata.org/)
 
