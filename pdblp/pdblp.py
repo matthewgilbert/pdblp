@@ -103,7 +103,7 @@ class BCon(object):
     def bdh(self, tickers, flds, start_date,
             end_date=datetime.date.today().strftime('%Y%m%d'),
             periodselection='DAILY',
-            ovrds=[]):
+            ovrds=[], longdata=False):
         """
         Get tickers and fields, return pandas dataframe with column MultiIndex
         of tickers and fields if multiple fields given an Index otherwise.
@@ -123,7 +123,23 @@ class BCon(object):
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value
+        longdata: boolean
+            Whether data should be returned in long data format or pivoted
         """
+
+        data = self._bdh_list(tickers, flds, start_date, end_date,
+                              periodselection, ovrds)
+
+        df = DataFrame(data)
+        df.columns = ["date", "ticker", "field", "value"]
+        df.loc[:, "date"] = pd.to_datetime(df.loc[:, "date"])
+        if not longdata:
+            df = df.pivot_table(index="date", columns=["ticker", "field"],
+                                values="value")
+        return df
+
+    def _bdh_list(self, tickers, flds, start_date, end_date, periodselection,
+                  ovrds):
 
         if type(tickers) is not list:
             tickers = [tickers]
@@ -140,8 +156,7 @@ class BCon(object):
         logging.debug("Sending Request:\n %s" % request)
         # Send the request
         self.session.sendRequest(request)
-        # defaultdict - later convert to pandas
-        data = defaultdict(dict)
+        data = []
         # Process received events
         while(True):
             # We provide timeout to give the chance for Ctrl+C handling:
@@ -159,18 +174,11 @@ class BCon(object):
                         if fname == "date":
                             continue
                         val = element.getValue()
-                        data[(ticker, fname)][dt] = val
+                        data.append((dt, ticker, fname, val))
             if ev.eventType() == blpapi.Event.RESPONSE:
                 # Response completely received, so we could exit
                 break
 
-        data = DataFrame(data)
-        data.columns.names = ['ticker', 'field']
-        data.index = pd.to_datetime(data.index)
-        # for single field drop MultiIndex and return in order tickers appear
-        if len(flds) == 1:
-            data.columns = data.columns.droplevel(-1)
-            data = data.loc[:, tickers]
         return data
 
     def ref(self, tickers, flds, ovrds=[]):
