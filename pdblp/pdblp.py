@@ -183,9 +183,8 @@ class BCon(object):
 
     def ref(self, tickers, flds, ovrds=[]):
         """
-        Make a reference data request, get tickers and fields, return pandas
-        dataframe with column of tickers and index of flds, ordered in same
-        order as tickers and flds
+        Make a reference data request, get tickers and fields, return long
+        pandas Dataframe with columns [ticker, field, value]
 
         Parameters
         ----------
@@ -197,6 +196,14 @@ class BCon(object):
             List of tuples where each tuple corresponds to the override
             field and value
         """
+
+        data = self._ref(tickers, flds, ovrds)
+
+        data = DataFrame(data)
+        data.columns = ["ticker", "field", "value"]
+        return data
+
+    def _ref(self, tickers, flds, ovrds):
 
         if type(tickers) is not list:
             tickers = [tickers]
@@ -225,7 +232,6 @@ class BCon(object):
                         # this is for dealing with requests which return arrays
                         # of values for a single field
                         if reqFldsData.getElement(fld).isArray():
-                            val = []
                             lrng = reqFldsData.getElement(fld).numValues()
                             for k in range(lrng):
                                 elms = (reqFldsData.getElement(fld).getValue(k).elements())  # NOQA
@@ -233,20 +239,15 @@ class BCon(object):
                                 # subelements this will just append them all
                                 # into a list
                                 for elm in elms:
-                                    val.append(elm.getValue())
+                                    data.append([ticker, fld, elm.getValue()])
                         else:
                             val = reqFldsData.getElement(fld).getValue()
-                        data.append((fld, ticker, val))
+                            data.append([ticker, fld, val])
 
             if ev.eventType() == blpapi.Event.RESPONSE:
                 # Response completely received, so we could exit
                 break
 
-        data = DataFrame(data)
-        data = data.pivot(0, 1, 2)
-        data.index.name = None
-        data.columns.name = None
-        data = data.loc[flds, tickers]
         return data
 
     def ref_hist(self, tickers, flds, start_date,
