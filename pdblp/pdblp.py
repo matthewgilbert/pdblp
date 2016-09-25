@@ -134,8 +134,10 @@ class BCon(object):
         df.columns = ["date", "ticker", "field", "value"]
         df.loc[:, "date"] = pd.to_datetime(df.loc[:, "date"])
         if not longdata:
-            df = df.pivot_table(index="date", columns=["ticker", "field"],
-                                values="value")
+            cols = ['ticker', 'field']
+            df = df.set_index(['date'] + cols).unstack(cols)
+            df.columns = df.columns.droplevel(0)
+
         return df
 
     def _bdh_list(self, tickers, flds, start_date, end_date, periodselection,
@@ -328,8 +330,10 @@ class BCon(object):
         data = data.loc[:, ['date', 'field', 'ticker', 'value']]
 
         if not longdata:
-            data = data.pivot_table(index="date", columns=["ticker", "field"],
-                                    values="value")
+            cols = ['ticker', 'field']
+            data = data.set_index(['date'] + cols).unstack(cols)
+            data.columns = data.columns.droplevel(0)
+
         return data
 
     def bdib(self, ticker, startDateTime, endDateTime, eventType='TRADE',
