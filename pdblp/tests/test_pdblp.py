@@ -93,3 +93,27 @@ class TestBCon(unittest.TestCase):
                           ['FUT_CHAIN', 'FUT_CUR_GEN_TICKER'])
         # unknown / changing data returned so just assert right type
         assertIsInstance(df, pd.DataFrame)
+
+    def test_hist_ref_one_ticker_one_field_longdata(self):
+        df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", "20160104", "20160105", longdata=True)  # NOQA
+        df_expect = pd.DataFrame(
+            {"date": pd.date_range("2016-01-04", "2016-01-05"),
+             "field": ["DAYS_TO_MTY", "DAYS_TO_MTY"],
+             "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
+             "value": [33, 32]}
+        )
+        assert_frame_equal(df, df_expect)
+
+    def test_hist_ref_one_ticker_one_field_pivoted(self):
+        df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", "20160104", "20160105")  # NOQA
+        midx = pd.MultiIndex(
+            levels=[["AUD1M CMPN Curncy"], ["DAYS_TO_MTY"]],
+            labels=[[0], [0]], names=["ticker", "field"]
+        )
+        df_expect = pd.DataFrame(
+            index=pd.date_range("2016-01-04", "2016-01-05"),
+            columns=midx,
+            data=[33, 32]
+        )
+        df_expect.index.names = ["date"]
+        assert_frame_equal(df, df_expect)
