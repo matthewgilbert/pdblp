@@ -94,7 +94,7 @@ class TestBCon(unittest.TestCase):
         # unknown / changing data returned so just assert right type
         assertIsInstance(df, pd.DataFrame)
 
-    def test_hist_ref_one_ticker_one_field_longdata(self):
+    def test_hist_ref_one_ticker_one_field_longdata_numeric(self):
         df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", "20160104", "20160105", longdata=True)  # NOQA
         df_expect = pd.DataFrame(
             {"date": pd.date_range("2016-01-04", "2016-01-05"),
@@ -104,7 +104,7 @@ class TestBCon(unittest.TestCase):
         )
         assert_frame_equal(df, df_expect)
 
-    def test_hist_ref_one_ticker_one_field_pivoted(self):
+    def test_hist_ref_one_ticker_one_field_pivoted_numeric(self):
         df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", "20160104", "20160105")  # NOQA
         midx = pd.MultiIndex(
             levels=[["AUD1M CMPN Curncy"], ["DAYS_TO_MTY"]],
@@ -114,6 +114,30 @@ class TestBCon(unittest.TestCase):
             index=pd.date_range("2016-01-04", "2016-01-05"),
             columns=midx,
             data=[33, 32]
+        )
+        df_expect.index.names = ["date"]
+        assert_frame_equal(df, df_expect)
+
+    def test_hist_ref_one_ticker_one_field_longdata_non_numeric(self):
+        df = self.con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", "20160104", "20160105", longdata=True)  # NOQA
+        df_expect = pd.DataFrame(
+            {"date": pd.date_range("2016-01-04", "2016-01-05"),
+             "field": ["SETTLE_DT", "SETTLE_DT"],
+             "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
+             "value": 2 * [pd.datetime(2016, 2, 8).date()]}
+        )
+        assert_frame_equal(df, df_expect)
+
+    def test_hist_ref_one_ticker_one_field_pivoted_non_numeric(self):
+        df = self.con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", "20160104", "20160105")  # NOQA
+        midx = pd.MultiIndex(
+            levels=[["AUD1M CMPN Curncy"], ["SETTLE_DT"]],
+            labels=[[0], [0]], names=["ticker", "field"]
+        )
+        df_expect = pd.DataFrame(
+            index=pd.date_range("2016-01-04", "2016-01-05"),
+            columns=midx,
+            data=2 * [pd.datetime(2016, 2, 8).date()]
         )
         df_expect.index.names = ["date"]
         assert_frame_equal(df, df_expect)
