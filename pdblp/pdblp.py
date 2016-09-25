@@ -252,7 +252,7 @@ class BCon(object):
 
     def ref_hist(self, tickers, flds, start_date,
                  end_date=datetime.date.today().strftime('%Y%m%d'),
-                 timeout=2000):
+                 timeout=2000, longdata=False):
         """
         Get tickers and fields, periodically override REFERENCE_DATE to create
         a time series. Return pandas dataframe with column MultiIndex
@@ -295,6 +295,8 @@ class BCon(object):
         for dt in dates:
             ovrd.setElement("fieldId", "REFERENCE_DATE")
             ovrd.setElement("value", dt.strftime('%Y%m%d'))
+            # CorrelationID used to keep track of which response coincides with
+            # which request
             cid = blpapi.CorrelationId(dt)
             logging.debug("Sending Request:\n %s" % request)
             self.session.sendRequest(request, correlationId=cid)
@@ -321,12 +323,13 @@ class BCon(object):
                     raise(RuntimeError("Timeout, increase timeout parameter"))
         data = pd.DataFrame(data)
         data.columns = ['field', 'ticker', 'value', 'date']
-        data = data.pivot_table(values='value', index='date',
-                                columns=['ticker', 'field'],
-                                aggfunc=lambda x: x)
-        if len(flds) == 1:
-            data.columns = data.columns.droplevel(-1)
-            data = data.loc[:, tickers]
+        data = data.sort_values(by='date')
+        data = data.reset_index(drop=True)
+        data = data.loc[:, ['date', 'field', 'ticker', 'value']]
+
+        if not longdata:
+            data = data.pivot_table(index="date", columns=["ticker", "field"],
+                                    values="value")
         return data
 
     def bdib(self, ticker, startDateTime, endDateTime, eventType='TRADE',
