@@ -100,9 +100,7 @@ class BCon(object):
 
         return request
 
-    def bdh(self, tickers, flds, start_date,
-            end_date=datetime.date.today().strftime('%Y%m%d'),
-            periodselection='DAILY',
+    def bdh(self, tickers, flds, start_date, end_date, elms=[],
             ovrds=[], longdata=False):
         """
         Get tickers and fields, return pandas dataframe with column MultiIndex
@@ -120,6 +118,10 @@ class BCon(object):
             String in format YYYYmmdd
         end_date: string
             String in format YYYYmmdd
+        elms: list of tuples
+            List of tuples where each tuple corresponds to the other elements
+            to be set, refer to A.2.4 HistoricalDataRequest in the
+            Developers Guide for more info on these values
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value
@@ -128,7 +130,7 @@ class BCon(object):
         """
 
         data = self._bdh_list(tickers, flds, start_date, end_date,
-                              periodselection, ovrds)
+                              elms, ovrds)
 
         df = DataFrame(data)
         df.columns = ["date", "ticker", "field", "value"]
@@ -140,7 +142,7 @@ class BCon(object):
 
         return df
 
-    def _bdh_list(self, tickers, flds, start_date, end_date, periodselection,
+    def _bdh_list(self, tickers, flds, start_date, end_date, elms,
                   ovrds):
 
         if type(tickers) is not list:
@@ -148,9 +150,9 @@ class BCon(object):
         if type(flds) is not list:
             flds = [flds]
 
-        setvals = [("periodicityAdjustment", "ACTUAL"),
-                   ("periodicitySelection", periodselection),
-                   ("startDate", start_date), ("endDate", end_date)]
+        setvals = elms
+        setvals.append(("startDate", start_date))
+        setvals.append(("endDate", end_date))
 
         request = self._create_req("HistoricalDataRequest", tickers, flds,
                                    ovrds, setvals)
@@ -336,25 +338,29 @@ class BCon(object):
 
         return data
 
-    def bdib(self, ticker, startDateTime, endDateTime, eventType='TRADE',
-             interval=1):
+    def bdib(self, ticker, start_datetime, end_datetime, event_type, interval,
+             elms=[]):
         """
-        Get Open, High, Low, Close, Volume, for a ticker.
+        Get Open, High, Low, Close, Volume, and numEvents for a ticker.
         Return pandas dataframe
 
         Parameters
         ----------
         ticker: string
             String corresponding to ticker
-        startDateTime: string
+        start_datetime: string
             UTC datetime in format YYYY-mm-ddTHH:MM:SS
-        endDateTime: string
+        end_datetime: string
             UTC datetime in format YYYY-mm-ddTHH:MM:SS
-        eventType: string {TRADE, BID, ASK, BID_BEST, ASK_BEST, BEST_BID,
+        event_type: string {TRADE, BID, ASK, BID_BEST, ASK_BEST, BEST_BID,
                            BEST_ASK}
             Requested data event type
         interval: int {1... 1440}
             Length of time bars
+        elms: list of tuples
+            List of tuples where each tuple corresponds to the other elements
+            to be set, refer to A.2.8 IntradayBarRequest in the
+            Developers Guide for more info on these values
         """
         # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
@@ -363,10 +369,12 @@ class BCon(object):
         # Create and fill the request for the historical data
         request = self.refDataService.createRequest("IntradayBarRequest")
         request.set("security", ticker)
-        request.set("eventType", eventType)
+        request.set("eventType", event_type)
         request.set("interval", interval)  # bar interval in minutes
-        request.set("startDateTime", startDateTime)
-        request.set("endDateTime", endDateTime)
+        request.set("startDateTime", start_datetime)
+        request.set("endDateTime", end_datetime)
+        for name, val in elms:
+            request.set(name, val)
 
         logging.debug("Sending Request:\n %s" % request)
         # Send the request
@@ -374,7 +382,7 @@ class BCon(object):
         # defaultdict - later convert to pandas
         data = defaultdict(dict)
         # Process received events
-        flds = ['open', 'high', 'low', 'close', 'volume']
+        flds = ['open', 'high', 'low', 'close', 'volume', 'numEvents']
         while(True):
             # We provide timeout to give the chance for Ctrl+C handling:
             ev = self.session.nextEvent(500)
@@ -385,50 +393,17 @@ class BCon(object):
                 for i in range(barTick.numValues()):
                     for fld in flds:
                         dt = barTick.getValue(i).getElement(0).getValue()
-                        val = (barTick.getValue(i).getElement(fld)
-                               .getValue())
+                        val = (barTick.getValue(i).getElement(fld).getValue())
                         data[(fld)][dt] = val
 
             if ev.eventType() == blpapi.Event.RESPONSE:
                 # Response completly received, so we could exit
                 break
         data = DataFrame(data)
-        data.index = pd.to_datetime(data.index)
-        data = data[flds]
+        if not data.empty:
+            data.index = pd.to_datetime(data.index)
+            data = data[flds]
         return data
-
-    def custom_req(self, request):
-        """
-        Utility for sending a predefined request and printing response as well
-        as storing messages in a list, useful for testing
-
-        Parameters
-        ----------
-        request: blpapi.request.Request
-            Request to be sent
-
-        Returns
-        -------
-            List of all messages received
-        """
-        # flush event queue in case previous call errored out
-        while(self.session.tryNextEvent()):
-            pass
-
-        logging.debug("Sending Request:\n %s" % request)
-        self.session.sendRequest(request)
-        messages = []
-        # Process received events
-        while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(500)
-            for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
-                messages.append(msg)
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completely received, so we could exit
-                break
-        return messages
 
     def stop(self):
         """
