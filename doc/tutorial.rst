@@ -9,7 +9,7 @@ the library and create a ``BCon()`` object
     In [1]: import pdblp
 
     In [2]: con = pdblp.BCon(debug=True)
-    
+
 Make sure that you are logged in to a Bloomberg terminal, after which you
 should be able to to start a connection as follows
 
@@ -18,7 +18,7 @@ should be able to to start a connection as follows
     In [3]: con.start()
 
 To get some historical data, we can call ``bdh()``
-    
+
 .. ipython::
 
     .. when debug is set to True output is printed to stdout which is
@@ -69,7 +69,7 @@ To get some historical data, we can call ``bdh()``
 Notice that when ``con.debug == True`` that the Response and Request messages
 are printed to stdout. This can be quite useful for debugging but gets
 annoying for normal use, so let's turn it off and get some more data. This time
-we request two fields which returns a DataFrame with a MultiIndex
+we request two fields which returns a DataFrame with a MultiIndex by default.
 
 .. ipython:: python
 
@@ -77,6 +77,13 @@ we request two fields which returns a DataFrame with a MultiIndex
 
     con.bdh('SPY US Equity', ['PX_LAST', 'VOLUME'], '20150629',
             '20150630')
+
+But can also return data in long format
+
+.. ipython:: python
+
+    con.bdh('SPY US Equity', ['PX_LAST', 'VOLUME'], '20150629',
+            '20150630', longdata=True)
 
 You can also override different ``FLDS``'s, for example
 
@@ -86,10 +93,10 @@ You can also override different ``FLDS``'s, for example
 
     con.bdh('MPMIEZMA Index', 'PX_LAST', '20150101', '20150830',
             ovrds=[('RELEASE_STAGE_OVERRIDE', 'P')])
-                    
+
 The libary also contains functions for accessing reference data, a variety of
 usages are shown below
-                    
+
 .. ipython:: python
 
     con.ref('AUDUSD Curncy', 'SETTLE_DT')
@@ -103,16 +110,9 @@ usages are shown below
             ['SETTLE_DT', 'DAYS_TO_MTY'],
             [('REFERENCE_DATE', '20150715')])
 
-Reference requests which return a list are also supported, these return a
-DataFrame where each element is a list
-            
-.. ipython:: python
+    con.ref('W 1 Comdty', 'FUT_CHAIN',
+            [('INCLUDE_EXPIRED_CONTRACTS', 'Y')])
 
-    df = con.ref('W 1 Comdty', 'FUT_CHAIN',
-                 [('INCLUDE_EXPIRED_CONTRACTS', 'Y')])
-    df
-    df.iloc[0, 0][1:5]
-    
 There are some types of reference data which cannot be downloaded in batch
 but support overriding the reference date. For this type of data, ``ref_hist()``
 is useful to sequentially override the reference date to generate a time
@@ -137,7 +137,7 @@ to ensure you can reproduce your results without a connection in the future is
 to make use of the excellent ``joblib`` library. For example
 
 .. ipython:: python
-    
+
     import joblib
     import shutil
     from tempfile import mkdtemp
@@ -147,20 +147,3 @@ to make use of the excellent ``joblib`` library. For example
     bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
     bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
     shutil.rmtree(temp_dir)
-                 
-The ``custom_req()`` method can also be useful for prototyping requests
-which are not handled by other methods, however will not be of much use to
-most users
-                 
-.. ipython:: python
-     
-    request = con.refDataService.createRequest("ReferenceDataRequest")
-    request.append('securities', 'AUD1M Curncy')
-    request.append('fields', 'DAYS_TO_MTY')
-    con.custom_req(request)
-    overrides = request.getElement('overrides')
-    override1 = overrides.appendElement()
-    override1.setElement("fieldId", 'REFERENCE_DATE')
-    override1.setElement('value', '20150629')
-    msg = con.custom_req(request)
-    print(msg[0])
