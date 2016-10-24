@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>API Reference &mdash; pdblp 0.1.0 documentation</title>
+    <title>API Reference &#8212; pdblp 5.0.6 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.0',
+        VERSION:     '5.0.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,14 +23,17 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pdblp 0.1.0 documentation" href="index.html" />
+    <link rel="top" title="pdblp 5.0.6 documentation" href="index.html" />
     <link rel="prev" title="Tutorial on using pdblp" href="tutorial.html" />
    
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body role="document">
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -38,8 +41,6 @@
           <div class="body" role="main">
             
   <div class="toctree-wrapper compound">
-<ul class="simple">
-</ul>
 </div>
 <div class="section" id="module-pdblp.pdblp">
 <span id="api-reference"></span><h1>API Reference<a class="headerlink" href="#module-pdblp.pdblp" title="Permalink to this headline">¶</a></h1>
@@ -87,35 +88,32 @@ and response messages to stdout</p>
 <col width="90%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.bdh" title="pdblp.pdblp.BCon.bdh"><code class="xref py py-obj docutils literal"><span class="pre">bdh</span></code></a>(tickers,&nbsp;flds,&nbsp;start_date[,&nbsp;end_date,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.bdh" title="pdblp.pdblp.BCon.bdh"><code class="xref py py-obj docutils literal"><span class="pre">bdh</span></code></a>(tickers,&nbsp;flds,&nbsp;start_date,&nbsp;end_date[,&nbsp;...])</td>
 <td>Get tickers and fields, return pandas dataframe with column MultiIndex of tickers and fields if multiple fields given an Index otherwise.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.bdib" title="pdblp.pdblp.BCon.bdib"><code class="xref py py-obj docutils literal"><span class="pre">bdib</span></code></a>(ticker,&nbsp;startDateTime,&nbsp;endDateTime[,&nbsp;...])</td>
-<td>Get Open, High, Low, Close, Volume, for a ticker.</td>
+<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.bdib" title="pdblp.pdblp.BCon.bdib"><code class="xref py py-obj docutils literal"><span class="pre">bdib</span></code></a>(ticker,&nbsp;start_datetime,&nbsp;end_datetime,&nbsp;...)</td>
+<td>Get Open, High, Low, Close, Volume, and numEvents for a ticker.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.custom_req" title="pdblp.pdblp.BCon.custom_req"><code class="xref py py-obj docutils literal"><span class="pre">custom_req</span></code></a>(request)</td>
-<td>Utility for sending a predefined request and printing response as well</td>
+<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.ref" title="pdblp.pdblp.BCon.ref"><code class="xref py py-obj docutils literal"><span class="pre">ref</span></code></a>(tickers,&nbsp;flds[,&nbsp;ovrds])</td>
+<td>Make a reference data request, get tickers and fields, return long</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.ref" title="pdblp.pdblp.BCon.ref"><code class="xref py py-obj docutils literal"><span class="pre">ref</span></code></a>(tickers,&nbsp;flds[,&nbsp;ovrds])</td>
-<td>Make a reference data request, get tickers and fields, return pandas</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.ref_hist" title="pdblp.pdblp.BCon.ref_hist"><code class="xref py py-obj docutils literal"><span class="pre">ref_hist</span></code></a>(tickers,&nbsp;flds,&nbsp;start_date[,&nbsp;...])</td>
+<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.ref_hist" title="pdblp.pdblp.BCon.ref_hist"><code class="xref py py-obj docutils literal"><span class="pre">ref_hist</span></code></a>(tickers,&nbsp;flds,&nbsp;start_date[,&nbsp;...])</td>
 <td>Get tickers and fields, periodically override REFERENCE_DATE to create a time series.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.restart" title="pdblp.pdblp.BCon.restart"><code class="xref py py-obj docutils literal"><span class="pre">restart</span></code></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.restart" title="pdblp.pdblp.BCon.restart"><code class="xref py py-obj docutils literal"><span class="pre">restart</span></code></a>()</td>
 <td>Restart the blp session</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.start" title="pdblp.pdblp.BCon.start"><code class="xref py py-obj docutils literal"><span class="pre">start</span></code></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.start" title="pdblp.pdblp.BCon.start"><code class="xref py py-obj docutils literal"><span class="pre">start</span></code></a>()</td>
 <td>start connection and init service for refData</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.stop" title="pdblp.pdblp.BCon.stop"><code class="xref py py-obj docutils literal"><span class="pre">stop</span></code></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.stop" title="pdblp.pdblp.BCon.stop"><code class="xref py py-obj docutils literal"><span class="pre">stop</span></code></a>()</td>
 <td>Close the blp session</td>
 </tr>
 </tbody>
 </table>
 <dl class="method">
 <dt id="pdblp.pdblp.BCon.bdh">
-<code class="descname">bdh</code><span class="sig-paren">(</span><em>tickers</em>, <em>flds</em>, <em>start_date</em>, <em>end_date='20160218'</em>, <em>periodselection='DAILY'</em>, <em>ovrds=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.bdh" title="Permalink to this definition">¶</a></dt>
+<code class="descname">bdh</code><span class="sig-paren">(</span><em>tickers</em>, <em>flds</em>, <em>start_date</em>, <em>end_date</em>, <em>elms=[]</em>, <em>ovrds=[]</em>, <em>longdata=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.bdh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get tickers and fields, return pandas dataframe with column MultiIndex
 of tickers and fields if multiple fields given an Index otherwise.
 If single field is given DataFrame is ordered same as tickers,
@@ -140,10 +138,20 @@ otherwise MultiIndex is sorted</p>
 <blockquote>
 <div><p>String in format YYYYmmdd</p>
 </div></blockquote>
+<p><strong>elms: list of tuples</strong></p>
+<blockquote>
+<div><p>List of tuples where each tuple corresponds to the other elements
+to be set, refer to A.2.4 HistoricalDataRequest in the
+Developers Guide for more info on these values</p>
+</div></blockquote>
 <p><strong>ovrds: list of tuples</strong></p>
-<blockquote class="last">
+<blockquote>
 <div><p>List of tuples where each tuple corresponds to the override
 field and value</p>
+</div></blockquote>
+<p><strong>longdata: boolean</strong></p>
+<blockquote class="last">
+<div><p>Whether data should be returned in long data format or pivoted</p>
 </div></blockquote>
 </td>
 </tr>
@@ -153,8 +161,8 @@ field and value</p>
 
 <dl class="method">
 <dt id="pdblp.pdblp.BCon.bdib">
-<code class="descname">bdib</code><span class="sig-paren">(</span><em>ticker</em>, <em>startDateTime</em>, <em>endDateTime</em>, <em>eventType='TRADE'</em>, <em>interval=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.bdib" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get Open, High, Low, Close, Volume, for a ticker.
+<code class="descname">bdib</code><span class="sig-paren">(</span><em>ticker</em>, <em>start_datetime</em>, <em>end_datetime</em>, <em>event_type</em>, <em>interval</em>, <em>elms=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.bdib" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get Open, High, Low, Close, Volume, and numEvents for a ticker.
 Return pandas dataframe</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -164,15 +172,15 @@ Return pandas dataframe</p>
 <blockquote>
 <div><p>String corresponding to ticker</p>
 </div></blockquote>
-<p><strong>startDateTime: string</strong></p>
+<p><strong>start_datetime: string</strong></p>
 <blockquote>
 <div><p>UTC datetime in format YYYY-mm-ddTHH:MM:SS</p>
 </div></blockquote>
-<p><strong>endDateTime: string</strong></p>
+<p><strong>end_datetime: string</strong></p>
 <blockquote>
 <div><p>UTC datetime in format YYYY-mm-ddTHH:MM:SS</p>
 </div></blockquote>
-<p><strong>eventType: string {TRADE, BID, ASK, BID_BEST, ASK_BEST, BEST_BID,</strong></p>
+<p><strong>event_type: string {TRADE, BID, ASK, BID_BEST, ASK_BEST, BEST_BID,</strong></p>
 <blockquote>
 <div><blockquote>
 <div><p>BEST_ASK}</p>
@@ -180,31 +188,15 @@ Return pandas dataframe</p>
 <p>Requested data event type</p>
 </div></blockquote>
 <p><strong>interval: int {1... 1440}</strong></p>
-<blockquote class="last">
+<blockquote>
 <div><p>Length of time bars</p>
 </div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="pdblp.pdblp.BCon.custom_req">
-<code class="descname">custom_req</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.custom_req" title="Permalink to this definition">¶</a></dt>
-<dd><p>Utility for sending a predefined request and printing response as well
-as storing messages in a list, useful for testing</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>request: blpapi.request.Request</strong></p>
-<blockquote>
-<div><p>Request to be sent</p>
+<p><strong>elms: list of tuples</strong></p>
+<blockquote class="last">
+<div><p>List of tuples where each tuple corresponds to the other elements
+to be set, refer to A.2.8 IntradayBarRequest in the
+Developers Guide for more info on these values</p>
 </div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">List of all messages received</p>
 </td>
 </tr>
 </tbody>
@@ -221,9 +213,8 @@ to stdout</p>
 <dl class="method">
 <dt id="pdblp.pdblp.BCon.ref">
 <code class="descname">ref</code><span class="sig-paren">(</span><em>tickers</em>, <em>flds</em>, <em>ovrds=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.ref" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make a reference data request, get tickers and fields, return pandas
-dataframe with column of tickers and index of flds, ordered in same
-order as tickers and flds</p>
+<dd><p>Make a reference data request, get tickers and fields, return long
+pandas Dataframe with columns [ticker, field, value]</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -249,7 +240,7 @@ field and value</p>
 
 <dl class="method">
 <dt id="pdblp.pdblp.BCon.ref_hist">
-<code class="descname">ref_hist</code><span class="sig-paren">(</span><em>tickers</em>, <em>flds</em>, <em>start_date</em>, <em>end_date='20160218'</em>, <em>timeout=2000</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.ref_hist" title="Permalink to this definition">¶</a></dt>
+<code class="descname">ref_hist</code><span class="sig-paren">(</span><em>tickers</em>, <em>flds</em>, <em>start_date</em>, <em>end_date='20161023'</em>, <em>timeout=2000</em>, <em>longdata=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.ref_hist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get tickers and fields, periodically override REFERENCE_DATE to create
 a time series. Return pandas dataframe with column MultiIndex
 of tickers and fields if multiple fields given, Index otherwise.
@@ -317,7 +308,7 @@ timeout occurs</p>
 <h3><a href="index.html">Table Of Contents</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial on using pdblp</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">API Reference</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul class="simple">
 </ul>
 </li>
 </ul>
@@ -325,14 +316,11 @@ timeout occurs</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -343,8 +331,8 @@ timeout occurs</p>
       &copy;2016, Matthew Gilbert.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>
 
