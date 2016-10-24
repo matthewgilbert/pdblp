@@ -8,7 +8,7 @@ the library and create a ``BCon()`` object
 
     In [1]: import pdblp
 
-    In [2]: con = pdblp.BCon(port=18194, debug=True)
+    In [2]: con = pdblp.BCon(debug=True)
 
 Make sure that you are logged in to a Bloomberg terminal, after which you
 should be able to to start a connection as follows
