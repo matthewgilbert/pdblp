@@ -6,6 +6,8 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
+GITHUB_REPO=https://github.com/matthewgilbert/pdblp.git
+GITHUB_PAGES_BRANCH=gh-pages:gh-pages
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -23,6 +25,7 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       to make standalone HTML files"
+	@echo "  github     deploy html to gh-pages"
 	@echo "  dirhtml    to make HTML files named index.html in directories"
 	@echo "  singlehtml to make a single large HTML file"
 	@echo "  pickle     to make pickle files"
@@ -56,6 +59,13 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
+
+.PHONY: github
+github:
+	ghp-import -m "Sphinx Documentation" $(BUILDDIR)/html
+	git push -f $(GITHUB_REPO) $(GITHUB_PAGES_BRANCH)
+	@echo
+	@echo "Pushing docs to gh-pages on GitHub"
 
 .PHONY: dirhtml
 dirhtml:
