@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include requirements.txt
+
+graft doc
+prune doc/_build

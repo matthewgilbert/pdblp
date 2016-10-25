@@ -13,21 +13,27 @@ Server API however this has only been tested using Windows and the Desktop API.
 The library borrows heavily from a similar package available
 [here](https://github.com/kyuni22/pybbg)
 
-##Requires
+## Requires
 
 [Bloomberg Open API](http://www.bloomberglabs.com/api/) 
 
 [pandas](http://pandas.pydata.org/)
 
-##Installation
-To install pdblp clone this repository and pip install the package, i.e.
+## Installation
+You can install from PyPi using
+
+```
+pip install pdblp
+```
+
+or you can clone this repository and pip install the package, i.e.
 
 ```
 git clone https://github.com/matthewgilbert/pdblp.git
 pip install -e pdblp
 ```
 
-##Documentation
+## Documentation
 Once `pdblp` has been installed, documentation can be built using
 
 ```
