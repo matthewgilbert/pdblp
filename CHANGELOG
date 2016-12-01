@@ -1,0 +1,3 @@
+# pdblp 0.1.1
+
+- fixed bug where list of parameters persisted over multiple calls
