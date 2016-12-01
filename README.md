@@ -7,8 +7,6 @@ applications on top of however does not provide easy and interactive access to
 data. This package provides several functions for accessing historical market
 data and reference data. A simple set of examples is available
 [here](https://matthewgilbert.github.io/pdblp/tutorial.html).
-In theory this should work on both Windows and Linux connecting to Bloomberg
-Server API however this has only been tested using Windows and the Desktop API.
 
 The library borrows heavily from a similar package available
 [here](https://github.com/kyuni22/pybbg)
