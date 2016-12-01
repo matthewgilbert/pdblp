@@ -120,14 +120,17 @@ class BCon(object):
             String in format YYYYmmdd
         elms: list of tuples
             List of tuples where each tuple corresponds to the other elements
-            to be set, refer to A.2.4 HistoricalDataRequest in the
-            Developers Guide for more info on these values
+            to be set, e.g. [("periodicityAdjustment", "ACTUAL")]
+            Refer to A.2.4 HistoricalDataRequest in the Developers Guide for
+            more info on these values
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value
         longdata: boolean
             Whether data should be returned in long data format or pivoted
         """
+
+        elms = list(elms)
 
         data = self._bdh_list(tickers, flds, start_date, end_date,
                               elms, ovrds)
