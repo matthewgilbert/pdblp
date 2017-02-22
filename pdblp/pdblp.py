@@ -2,8 +2,19 @@ import blpapi
 import logging
 import datetime
 import pandas as pd
+import contextlib
 from collections import defaultdict
 from pandas import DataFrame
+
+
+@contextlib.contextmanager
+def bopen(debug=False):
+    con = BCon(debug=debug)
+    con.start()
+    try:
+        yield con
+    finally:
+        con.stop()
 
 
 class BCon(object):
