@@ -13,7 +13,7 @@ The library borrows heavily from a similar package available
 
 ## Requires
 
-[Bloomberg Open API](http://www.bloomberglabs.com/api/) 
+[Bloomberg Open API](http://www.bloomberglabs.com/api/)
 
 [pandas](http://pandas.pydata.org/)
 
@@ -30,6 +30,16 @@ or you can clone this repository and pip install the package, i.e.
 git clone https://github.com/matthewgilbert/pdblp.git
 pip install -e pdblp
 ```
+
+`blpapi` can be installed directly from the above link or you can install from
+the conda channel dsm into an environment, e.g.
+
+```
+conda install -n py36 -c dsm blpapi
+```
+
+If going this route make sure there is a build available for your version of
+python https://anaconda.org/dsm/blpapi/files
 
 ## Documentation
 Once `pdblp` has been installed, documentation can be built using
