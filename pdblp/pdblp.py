@@ -424,3 +424,175 @@ class BCon(object):
         Close the blp session
         """
         self.session.stop()
+
+    def beqs(self, screen_name, screen_type='PRIVATE', group='General', language_id='ENGLISH', asof_date=None):
+        """
+        The beqs() function allows users to retrieve a table of data for a selected equity screen 
+        that was created using the Equity Screening (EQS) function.
+        See https://data.bloomberglp.com/professional/sites/4/BLPAPI-Core-Developer-Guide.pdf.
+        Make a Beqs request, get tickers and fields, return long
+        pandas Dataframe with columns [ticker, field, value]
+
+        Parameters
+        ----------
+        screen_name: string
+            String corresponding to name of screen
+        screen_type: 'GLOBAL' or 'PRIVATE'
+            Indicates that the screen is a Bloomberg-created sample screen (GLOBAL) or 
+            a saved custom screen that users have created (PRIVATE).
+        group: string
+            If the screens are organized into groups, allows users to define the name of the group that
+            contains the screen. If the users use a Bloomberg sample screen, 
+            they must use this parameter to specify the name of the folder in which the screen appears.
+            For example, group="Investment Banking" when importing the “Cash/Debt Ratio” screen.
+        language_id: string
+            Allows users to override the EQS report header language 
+        asof_date: datetime or None
+            Allows users to backdate the screen, so they can analyze the historical results on the screen
+        """
+
+        data = self._beqs(screen_name, screen_type, group, language_id, asof_date)
+
+        data = DataFrame(data)
+        data.columns = ["ticker", "field", "value", "date"]
+        return data
+
+    def _beqs(self, screen_name, screen_type, group, language_id, asof_date):
+
+        # flush event queue in case previous call errored out
+        while (self.session.tryNextEvent()):
+            pass
+
+        request = self._beqs_create_req(screen_name, screen_type, group, language_id)
+
+        cid = None
+        if asof_date is not None:
+            overrides = request.getElement("overrides")
+            ovrd = overrides.appendElement()
+            ovrd.setElement("fieldId", "PiTDate")
+            ovrd.setElement("value", asof_date.strftime('%Y%m%d'))
+            cid = blpapi.CorrelationId(asof_date)
+
+        logging.debug("Sending Request:\n %s" % request)
+        # Send the request
+        self.session.sendRequest(request, correlationId=cid)
+        data = []
+        # Process received events
+        while (True):
+            # We provide timeout to give the chance for Ctrl+C handling:
+            ev = self.session.nextEvent(500)
+            data = self._beqs_parse_event(data, ev)
+
+            if ev.eventType() == blpapi.Event.RESPONSE:
+                # Response completely received, so we could exit
+                break
+
+        return data
+
+    def _beqs_parse_event(self, data, ev):
+        for msg in ev:
+            logging.debug("Message Received:\n %s" % msg)
+            corrID = msg.correlationIds()[0].value()
+            fldData = msg.getElement('data').getElement('securityData')
+            for i in range(fldData.numValues()):
+                ticker = (fldData.getValue(i).getElement("security").getValue())  # NOQA
+                reqFldsData = (fldData.getValue(i).getElement('fieldData'))
+                for e in reqFldsData.elements():
+                    fld = str(e.name())
+                    # this is for dealing with requests which return arrays
+                    # of values for a single field
+                    if reqFldsData.getElement(fld).isArray():
+                        lrng = reqFldsData.getElement(fld).numValues()
+                        for k in range(lrng):
+                            elms = (reqFldsData.getElement(fld).getValue(k).elements())  # NOQA
+                            # if the elements of the array have multiple
+                            # subelements this will just append them all
+                            # into a list
+                            for elm in elms:
+                                data.append([ticker, fld, elm.getValue(), corrID])
+                    else:
+                        val = reqFldsData.getElement(fld).getValue()
+                        data.append([ticker, fld, val, corrID])
+        return data
+
+    def _beqs_create_req(self, screen_name, screen_type, group, language_id):
+        request = self.refDataService.createRequest('BeqsRequest')
+        request.set('screenName', screen_name)
+        request.set('screenType', screen_type)
+        request.set('Group', group)
+        request.set('languageId', language_id)
+        return request
+
+    def beqs_hist(self, screen_name, screen_type='PRIVATE', group='General', language_id='ENGLISH',
+                  asof_dates=pd.date_range(datetime.date.today(), datetime.date.today(), freq='b'),
+                  timeout=2000, longdata=False):
+        """
+        Get tickers and fields, periodically override ASOF to create
+        a time series. Return pandas dataframe with column MultiIndex
+        of tickers and fields, Index otherwise.
+        If single field, DataFrame is ordered same as tickers,
+        otherwise MultiIndex is sorted.
+
+        Parameters
+        ----------
+        screen_name: string
+            String corresponding to name of screen
+        screen_type: 'GLOBAL' or 'PRIVATE'
+            Indicates that the screen is a Bloomberg-created sample screen (GLOBAL) or 
+            a saved custom screen that users have created (PRIVATE).
+        group: string
+            If the screens are organized into groups, allows users to define the name of the group that
+            contains the screen. If the users use a Bloomberg sample screen, 
+            they must use this parameter to specify the name of the folder in which the screen appears.
+            For example, group="Investment Banking" when importing the “Cash/Debt Ratio” screen.
+        language_id: string
+            Allows users to override the EQS report header language 
+        asof_dates: DatetimeIndex
+            Dates on which to get the screen's historical results
+        timeout: int
+            Passed into nextEvent(timeout), number of milliseconds before
+            timeout occurs
+        """
+        # correlationIDs should be unique to a session so rather than
+        # managing unique IDs for the duration of the session just restart
+        # a session for each call
+        self.restart()
+
+        request = self._beqs_create_req(screen_name, screen_type, group, language_id)
+        overrides = request.getElement("overrides")
+        ovrd = overrides.appendElement()
+        for dt in asof_dates:
+            ovrd.setElement("fieldId", "PiTDate")
+            ovrd.setElement("value", dt.strftime('%Y%m%d'))
+            # CorrelationID used to keep track of which response coincides with which request
+            cid = blpapi.CorrelationId(dt)
+            logging.debug("Sending Request:\n %s" % request)
+            self.session.sendRequest(request, correlationId=cid)
+        data = []
+        # Process received events
+        ev_counter = 0
+        while (True):
+            ev = self.session.nextEvent(timeout)
+            data = self._beqs_parse_event(data, ev)
+            if ev.eventType() == blpapi.Event.RESPONSE:
+                ev_counter += 1
+                if ev_counter == len(asof_dates):
+                    break
+                    # if ev.eventType() == blpapi.Event.TIMEOUT:
+                    # All events processed
+                    # if (len(data) / len(set(data[0])) / len(set(data[1]))) == len(asof_dates):
+                    #     break
+                    # else:
+                    #     raise(RuntimeError("Timeout, increase timeout parameter"))
+        data = pd.DataFrame(data)
+        data.columns = ['ticker', 'field', 'value', 'date']
+        data = data.sort_values(by=['date', 'ticker', 'field'])
+        data = data.reset_index(drop=True)
+        data = data.loc[:, ['date', 'ticker', 'field', 'value']]
+
+        if not longdata:
+            cols = ['ticker', 'field']
+            data = data.set_index(['date'] + cols).unstack('field')
+            data.columns = data.columns.droplevel(0)
+
+        return data
