@@ -1,7 +1,7 @@
+import datetime
 import unittest
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
-from pandas.util.testing import assertIsInstance
 from pdblp import pdblp
 
 IP_PORT = 8194
@@ -94,18 +94,18 @@ class TestBCon(unittest.TestCase):
     def test_ref_one_ticker_one_field_many_output(self):
         df = self.con.ref('CL1 Comdty', 'FUT_CHAIN')
         # unknown / changing data returned so just assert right type
-        assertIsInstance(df, pd.DataFrame)
+        assert isinstance(df, pd.DataFrame)
 
     def test_ref_two_ticker_one_field_many_output(self):
         df = self.con.ref(['CL1 Comdty', 'CO1 Comdty'], 'FUT_CHAIN')
         # unknown / changing data returned so just assert right type
-        assertIsInstance(df, pd.DataFrame)
+        assert isinstance(df, pd.DataFrame)
 
     def test_ref_two_ticker_two_field_many_output(self):
         df = self.con.ref(['CL1 Comdty', 'CO1 Comdty'],
                           ['FUT_CHAIN', 'FUT_CUR_GEN_TICKER'])
         # unknown / changing data returned so just assert right type
-        assertIsInstance(df, pd.DataFrame)
+        assert isinstance(df, pd.DataFrame)
 
     def test_ref_one_ticker_one_field_override(self):
         df = self.con.ref('AUD Curncy', 'SETTLE_DT',
@@ -164,3 +164,19 @@ class TestBCon(unittest.TestCase):
         )
         df_expect.index.names = ["date"]
         assert_frame_equal(df, df_expect)
+
+    def test_beqs_current(self):
+        df = self.con.beqs('Insider Buyers', 'GLOBAL', 'Popular')
+        assert len(df) > 0
+
+    def test_beqs_asof(self):
+        asof_date = datetime.datetime(2016, 5, 4)
+        df = self.con.beqs('Insider Buyers', 'GLOBAL', 'Popular', asof_date=asof_date)
+        assert len(df) == 1145
+
+    def test_beqs_hist(self):
+        asof_dates = pd.DatetimeIndex([datetime.datetime(2016, 5, 4),
+                                       datetime.datetime(2017, 5, 10)])
+        df = self.con.beqs_hist('Insider Buyers', 'GLOBAL', 'Popular',
+                                asof_dates=asof_dates, longdata=False)
+        assert len(df) == 487
