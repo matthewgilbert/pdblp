@@ -9,4 +9,4 @@ lint:
 	flake8 ./pdblp
 
 test:
-	python -m unittest -v pdblp.tests.test_pdblp
+	pytest pdblp/tests -v

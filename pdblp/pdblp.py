@@ -8,8 +8,16 @@ from pandas import DataFrame
 
 
 @contextlib.contextmanager
-def bopen(debug=False):
-    con = BCon(debug=debug)
+def bopen(**kwargs):
+    """
+    Open and manage a BCon wrapper to a Bloomberg API session
+
+    Parameters
+    ----------
+    **kwargs:
+        Keyword arguments passed into pdblp.BCon initialization
+    """
+    con = BCon(**kwargs)
     con.start()
     try:
         yield con
@@ -71,12 +79,12 @@ class BCon(object):
         # Start a Session
         if not self.session.start():
             logging.info("Failed to start session.")
-            return
+            raise ConnectionError("Could not start a blpapi.session")
         self.session.nextEvent()
         # Open service to get historical data from
         if not self.session.openService("//blp/refdata"):
             logging.info("Failed to open //blp/refdata")
-            return
+            raise ConnectionError("Could not open a //blp/refdata service")
         self.session.nextEvent()
         # Obtain previously opened service
         self.refDataService = self.session.getService("//blp/refdata")

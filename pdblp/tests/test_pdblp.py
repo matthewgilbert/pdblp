@@ -1,7 +1,6 @@
 import unittest
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
-from pandas.util.testing import assertIsInstance
 from pdblp import pdblp
 
 IP_PORT = 8194
@@ -94,18 +93,18 @@ class TestBCon(unittest.TestCase):
     def test_ref_one_ticker_one_field_many_output(self):
         df = self.con.ref('CL1 Comdty', 'FUT_CHAIN')
         # unknown / changing data returned so just assert right type
-        assertIsInstance(df, pd.DataFrame)
+        assert isinstance(df, pd.DataFrame)
 
     def test_ref_two_ticker_one_field_many_output(self):
         df = self.con.ref(['CL1 Comdty', 'CO1 Comdty'], 'FUT_CHAIN')
         # unknown / changing data returned so just assert right type
-        assertIsInstance(df, pd.DataFrame)
+        assert isinstance(df, pd.DataFrame)
 
     def test_ref_two_ticker_two_field_many_output(self):
         df = self.con.ref(['CL1 Comdty', 'CO1 Comdty'],
                           ['FUT_CHAIN', 'FUT_CUR_GEN_TICKER'])
         # unknown / changing data returned so just assert right type
-        assertIsInstance(df, pd.DataFrame)
+        assert isinstance(df, pd.DataFrame)
 
     def test_ref_one_ticker_one_field_override(self):
         df = self.con.ref('AUD Curncy', 'SETTLE_DT',
@@ -164,3 +163,24 @@ class TestBCon(unittest.TestCase):
         )
         df_expect.index.names = ["date"]
         assert_frame_equal(df, df_expect)
+
+    def test_context_manager(self):
+        with pdblp.bopen(port=IP_PORT) as bb:
+            df = bb.bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
+        midx = pd.MultiIndex(levels=[["SPY US Equity"], ["PX_LAST"]],
+                             labels=[[0], [0]], names=["ticker", "field"])
+        df_expect = pd.DataFrame(
+            index=pd.date_range("2015-06-29", "2015-06-30"),
+            columns=midx,
+            data=[205.42, 205.85]
+        )
+        df_expect.index.names = ["date"]
+        assert_frame_equal(df, df_expect)
+
+    def test_connection_error(self):
+        con = pdblp.BCon(port=1111)
+
+        def try_con():
+            con.start()
+
+        self.assertRaises(ConnectionError, try_con)
