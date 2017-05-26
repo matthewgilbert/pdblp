@@ -41,6 +41,13 @@ conda install -n py36 -c dsm blpapi
 If going this route make sure there is a build available for your version of
 python https://anaconda.org/dsm/blpapi/files
 
+If you are getting `'GLIBCXX_3.4.21' not found` error when attempting to import
+`blpapi`, the following appears to resolve this issue.
+
+```
+conda install libgcc
+```
+
 ## Documentation
 Once `pdblp` has been installed, documentation can be built using
 
