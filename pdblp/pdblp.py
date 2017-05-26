@@ -275,6 +275,85 @@ class BCon(object):
                 break
 
         return data
+    
+    # new bdsp function is designed to retrieve the tickers in a portfolio list 
+    # the function is identical to ref except that the request type is a PortfolioData Request
+    
+    def bdsp(self, tickers, flds=[], ovrds=[]): # changed so that fields is empty by default
+            
+        '''
+        Make a reference data request, get tickers and fields, return long
+        pandas Dataframe with columns [ticker, field, value]
+        Parameters
+        ----------
+        tickers: {list, string}
+            String or list of strings corresponding to tickers
+        flds: {list, string}
+            String or list of strings corresponding to FLDS
+        ovrds: list of tuples
+            List of tuples where each tuple corresponds to the override
+            field and value
+        '''
+
+        data = self._bdspref(tickers, flds, ovrds)
+
+        data = DataFrame(data)
+        
+        data.columns = ["ticker", "field", "values"]
+        return data
+
+    def _bdspref(self, tickers, flds, ovrds):
+
+        if type(tickers) is not list:
+            tickers = [tickers]
+        if type(flds) is not list:
+            flds = [flds]
+            
+        # the function is identical to ref except that the request type is a PortfolioData Request
+        request = self._create_req("PortfolioDataRequest", tickers, flds,
+                                   ovrds, [])
+
+        logging.debug("Sending Request:\n %s" % request)
+        # Send the request
+        self.session.sendRequest(request)
+        data = []
+        # Process received events
+        while(True):
+            # We provide timeout to give the chance for Ctrl+C handling:
+            ev = self.session.nextEvent(500)
+            for msg in ev:
+                logging.debug("Message Received:\n %s" % msg)
+                fldData = msg.getElement('securityData')
+                for i in range(fldData.numValues()):
+                    ticker = (fldData.getValue(i).getElement("security").getValue())  # NOQA
+                    reqFldsData = (fldData.getValue(i).getElement('fieldData'))
+                    
+                    for j in range(reqFldsData.numElements()):
+                        fld = flds[j]
+                        # this is for dealing with requests which return arrays
+                        # of values for a single field
+                        if reqFldsData.getElement(fld).isArray():
+                            lrng = reqFldsData.getElement(fld).numValues()
+                            for k in range(lrng):
+                                elms = (reqFldsData.getElement(fld).getValue(k).elements())  # NOQA
+                                # if the elements of the array have multiple
+                                # subelements this will just append them all
+                                # into a list
+                                for elm in elms:
+                                    data.append([ticker, fld, elm.getValue()])
+                        else:
+                            val = reqFldsData.getElement(fld).getValue()
+                            data.append([ticker, fld, val])
+
+            if ev.eventType() == blpapi.Event.RESPONSE:
+                # Response completely received, so we could exit
+                break
+
+        return data
+    
+    
+    
+    
 
     def ref_hist(self, tickers, flds, start_date,
                  end_date=datetime.date.today().strftime('%Y%m%d'),
