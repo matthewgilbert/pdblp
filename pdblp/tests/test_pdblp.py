@@ -3,6 +3,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal
 from pdblp import pdblp
 
+
 IP_PORT = 8194
 
 
@@ -70,14 +71,14 @@ class TestBCon(unittest.TestCase):
         assert_frame_equal(df, df_expect)
 
     def test_bdib(self):
-        df = self.con.bdib('SPY US Equity', '2016-10-17T10:00:00',
-                           '2016-10-17T10:20:01', event_type="BID",
+        df = self.con.bdib('SPY US Equity', '2017-06-12T10:00:00',
+                           '2017-06-12T10:20:01', event_type="BID",
                            interval=10)
-        idx = pd.DatetimeIndex(["2016-10-17T10:00:00", "2016-10-17T10:10:00",
-                                "2016-10-17T10:20:00"])
-        data = [[212.36, 212.40, 212.24, 212.26, 1576, 76],
-                [212.26, 212.36, 212.23, 212.23, 4432, 180],
-                [212.24, 212.26, 212.23, 212.24, 480, 24]]
+        idx = pd.DatetimeIndex(["2017-06-12T10:00:00", "2017-06-12T10:10:00",
+                                "2017-06-12T10:20:00"])
+        data = [[242.84, 242.84, 242.76, 242.84, 12535, 277],
+                [242.84, 242.87, 242.76, 242.79, 7790, 194],
+                [242.79, 242.79, 242.76, 242.79, 615, 13]]
         cols = ["open", "high", "low", "close", "volume", "numEvents"]
         df_expect = pd.DataFrame(data=data, index=idx, columns=cols)
         assert_frame_equal(df, df_expect)
@@ -184,3 +185,10 @@ class TestBCon(unittest.TestCase):
             con.start()
 
         self.assertRaises(ConnectionError, try_con)
+
+    def test_bsrch(self):
+        df = self.con.bsrch("COMDTY:VESSEL").head()
+        df_expect = pd.DataFrame(["IMO1000019 Index", "LADY K II",
+                                  "IMO1000021 Index", "MONTKAJ",
+                                  "IMO1000033 Index"])
+        assert_frame_equal(df, df_expect)
