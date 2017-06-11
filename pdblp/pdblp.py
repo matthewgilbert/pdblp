@@ -89,6 +89,13 @@ class BCon(object):
         # Obtain previously opened service
         self.refDataService = self.session.getService("//blp/refdata")
         self.session.nextEvent()
+        # Open BSearch Service
+        if not self.session.openService("//blp/exrsvc"):
+            logging.error("Failed to open //blp/exrsvc")
+            raise ConnectionError("Could not open a //blp/exrsvc service")
+        # Obtain previously opened service
+        self.exrService = self.session.getService("//blp/exrsvc")
+        self.session.nextEvent()
 
     def restart(self):
         """
@@ -227,6 +234,7 @@ class BCon(object):
 
         data = DataFrame(data)
         data.columns = ["ticker", "field", "value"]
+
         return data
 
     def _ref(self, tickers, flds, ovrds):
@@ -426,6 +434,41 @@ class BCon(object):
             data.index = pd.to_datetime(data.index)
             data = data[flds]
         return data
+
+    def bsrch(self, domain):
+        """This function uses the Bloomberg API to retrieve 'bsrch'
+        (Bloomberg SRCH Data) queries. Returns list of tickers.
+
+        Parameters
+        ----------
+        domain: string
+        A character string with the name of the domain to execute.
+        It can be a user defined SRCH screen, commodity screen or
+        one of the variety of Bloomberg examples. All domains are in the format
+        <domain>:<search_name>. Example "COMDTY:NGFLOW"
+        Returns
+        -------
+        data: pandas.DataFrame
+        List of bloomberg tickers from the BSRCH
+        """
+        request = self.exrService.createRequest("ExcelGetGridRequest")
+        request.set("Domain", domain)
+        self.session.sendRequest(request)
+        data = []
+        # Process received events
+        while True:
+            # We provide timeout to give the chance for Ctrl+C handling:
+            event = self.session.nextEvent(0)
+            if event.eventType() == blpapi.Event.RESPONSE or \
+               event.eventType() == blpapi.Event.PARTIAL_RESPONSE:
+                for msg in event:
+                    logging.debug(msg)
+                    for v in msg.getElement("DataRecords").values():
+                        for f in v.getElement("DataFields").values():
+                            data.append(f.getElementAsString("StringValue"))
+            if event.eventType() == blpapi.Event.RESPONSE:
+                break
+        return pd.DataFrame(data)
 
     def stop(self):
         """
