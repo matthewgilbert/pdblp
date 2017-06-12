@@ -17,6 +17,10 @@ The library borrows heavily from a similar package available
 
 [pandas](http://pandas.pydata.org/)
 
+and for `pdblp.parser`
+
+[pyparsing](https://pythonhosted.org/pyparsing/) >= 2.2.0
+
 ## Installation
 You can install from PyPi using
 
