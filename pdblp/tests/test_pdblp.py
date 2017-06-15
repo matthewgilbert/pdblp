@@ -157,53 +157,34 @@ class TestBCon(unittest.TestCase):
         self.assertTrue((df.field == p1 + "Bid Yield").any())
         self.assertTrue((df.field == p1 + "Last Update").any())
 
-    def test_hist_ref_one_ticker_one_field_longdata_numeric(self):
-        df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", "20160104", "20160105", longdata=True)  # NOQA
+    def test_hist_ref_one_ticker_one_field_numeric(self):
+        dates = ["20160104", "20160105"]
+        df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", dates)
         df_expect = pd.DataFrame(
-            {"date": pd.date_range("2016-01-04", "2016-01-05"),
+            {"date": dates,
              "field": ["DAYS_TO_MTY", "DAYS_TO_MTY"],
              "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
              "value": [33, 32]}
         )
         assert_frame_equal(df, df_expect)
 
-    def test_hist_ref_one_ticker_one_field_pivoted_numeric(self):
-        df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", "20160104", "20160105")  # NOQA
-        midx = pd.MultiIndex(
-            levels=[["AUD1M CMPN Curncy"], ["DAYS_TO_MTY"]],
-            labels=[[0], [0]], names=["ticker", "field"]
-        )
+    def test_hist_ref_one_ticker_one_field_non_numeric(self):
+        dates = ["20160104", "20160105"]
+        df = self.con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", dates)
         df_expect = pd.DataFrame(
-            index=pd.date_range("2016-01-04", "2016-01-05"),
-            columns=midx,
-            data=[33, 32]
-        )
-        df_expect.index.names = ["date"]
-        assert_frame_equal(df, df_expect)
-
-    def test_hist_ref_one_ticker_one_field_longdata_non_numeric(self):
-        df = self.con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", "20160104", "20160105", longdata=True)  # NOQA
-        df_expect = pd.DataFrame(
-            {"date": pd.date_range("2016-01-04", "2016-01-05"),
+            {"date": dates,
              "field": ["SETTLE_DT", "SETTLE_DT"],
              "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
              "value": 2 * [pd.datetime(2016, 2, 8).date()]}
         )
         assert_frame_equal(df, df_expect)
 
-    def test_hist_ref_one_ticker_one_field_pivoted_non_numeric(self):
-        df = self.con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", "20160104", "20160105")  # NOQA
-        midx = pd.MultiIndex(
-            levels=[["AUD1M CMPN Curncy"], ["SETTLE_DT"]],
-            labels=[[0], [0]], names=["ticker", "field"]
-        )
-        df_expect = pd.DataFrame(
-            index=pd.date_range("2016-01-04", "2016-01-05"),
-            columns=midx,
-            data=2 * [pd.datetime(2016, 2, 8).date()]
-        )
-        df_expect.index.names = ["date"]
-        assert_frame_equal(df, df_expect)
+    def test_hist_ref_with_alternative_reference_field(self):
+        dates = ["20160625"]
+        df = self.con.ref_hist("BVIS0587 Index", "CURVE_TENOR_RATES", dates,
+                               date_field="CURVE_DATE")
+        # simply check that the response was sent off and correctly received
+        self.assertIsInstance(df, pd.DataFrame)
 
     def test_context_manager(self):
         with pdblp.bopen(port=IP_PORT) as bb:

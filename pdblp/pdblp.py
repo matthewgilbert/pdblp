@@ -229,15 +229,6 @@ class BCon(object):
             field and value
         """
 
-        data = self._ref(tickers, flds, ovrds)
-
-        data = DataFrame(data)
-        data.columns = ["ticker", "field", "value"]
-
-        return data
-
-    def _ref(self, tickers, flds, ovrds):
-
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
@@ -247,15 +238,24 @@ class BCon(object):
                                    ovrds, [])
 
         logging.debug("Sending Request:\n %s" % request)
-        # Send the request
         self.session.sendRequest(request)
+        data = self._parse_ref(flds)
+        data = DataFrame(data)
+        data.columns = ["ticker", "field", "value"]
+        return data
+
+    def _parse_ref(self, flds, keep_corrId=False, sent_events=1, timeout=500):
         data = []
         # Process received events
         while(True):
             # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(500)
+            ev = self.session.nextEvent(timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
+                if keep_corrId:
+                    corrId = [msg.correlationIds()[0].value()]
+                else:
+                    corrId = []
                 secDataArray = msg.getElement('securityData')
                 for secDataElm in secDataArray.values():
                     ticker = secDataElm.getElement("security").getValue()
@@ -270,7 +270,9 @@ class BCon(object):
                         # field (which is checked above) then the assumption is
                         # that this is a not applicable field, thus set NaN
                         if not fieldData.hasElement(fld):
-                            data.append([ticker, fld, pd.np.NaN])
+                            dataj = [ticker, fld, pd.np.NaN]
+                            dataj.extend(corrId)
+                            data.append(dataj)
                         # this is for dealing with requests which return arrays
                         # of values for a single field
                         elif fieldData.getElement(fld).isArray():
@@ -280,14 +282,23 @@ class BCon(object):
                                 # into a list
                                 for elm in field.elements():
                                     mfld = fld + ":" + str(elm.name())
-                                    data.append([ticker, mfld, elm.getValue()])
+                                    dataj = [ticker, mfld, elm.getValue()]
+                                    dataj.extend(corrId)
+                                    data.append(dataj)
                         else:
                             val = fieldData.getElement(fld).getValue()
-                            data.append([ticker, fld, val])
+                            dataj = [ticker, fld, val]
+                            dataj.extend(corrId)
+                            data.append(dataj)
 
             if ev.eventType() == blpapi.Event.RESPONSE:
                 # Response completely received, so we could exit
-                break
+                sent_events = sent_events - 1
+                if sent_events == 0:
+                    break
+            # for ref_hist() calls this occassionally times out
+            elif ev.eventType() == blpapi.Event.TIMEOUT:
+                raise RuntimeError("Timeout, increase timeout parameter")
 
         return data
 
@@ -302,8 +313,7 @@ class BCon(object):
             if category == INVALID_FIELD:
                 raise ValueError("%s: %s" % (fe.getElement("fieldId").getValue(), category))  # NOQA
 
-    def ref_hist(self, tickers, flds, start_date,
-                 end_date, timeout=2000, longdata=False,
+    def ref_hist(self, tickers, flds, dates, timeout=2000, ovrds=[],
                  date_field="REFERENCE_DATE"):
         """
         Get tickers and fields, periodically override date_field to create
@@ -318,13 +328,15 @@ class BCon(object):
             String or list of strings corresponding to tickers
         flds: {list, string}
             String or list of strings corresponding to FLDS
-        start_date: string
-            String in format YYYYmmdd
-        end_date: string
-            String in format YYYYmmdd
+        dates: list
+            list of date strings in the format YYYYmmdd
         timeout: int
             Passed into nextEvent(timeout), number of milliseconds before
             timeout occurs
+        ovrds: list of tuples
+            List of tuples where each tuple corresponds to the override
+            field and value. This should not include the date_field which will
+            be iteratively overridden
         date_field: str
             Field to iteratively override for requesting historical data,
             e.g. REFERENCE_DATE, CURVE_DATE, etc.
@@ -337,56 +349,30 @@ class BCon(object):
             tickers = [tickers]
         if type(flds) is not list:
             flds = [flds]
-        # Create and fill the request for the historical data
-        request = self.refDataService.createRequest("ReferenceDataRequest")
-        for t in tickers:
-            request.getElement("securities").appendValue(t)
-        for f in flds:
-            request.getElement("fields").appendValue(f)
+
+        request = self._create_req("ReferenceDataRequest", tickers, flds,
+                                   ovrds, [])
 
         overrides = request.getElement("overrides")
-        dates = pd.date_range(start_date, end_date, freq='b')
+        if len(dates) == 0:
+            raise ValueError("dates must by non empty")
         ovrd = overrides.appendElement()
         for dt in dates:
             ovrd.setElement("fieldId", date_field)
-            ovrd.setElement("value", dt.strftime('%Y%m%d'))
+            ovrd.setElement("value", dt)
             # CorrelationID used to keep track of which response coincides with
             # which request
             cid = blpapi.CorrelationId(dt)
             logging.debug("Sending Request:\n %s" % request)
             self.session.sendRequest(request, correlationId=cid)
-        data = []
-        # Process received events
-        while(True):
-            ev = self.session.nextEvent(timeout)
-            for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
-                corrID = msg.correlationIds()[0].value()
-                fldData = msg.getElement('securityData')
-                for i in range(fldData.numValues()):
-                    tckr = (fldData.getValue(i).getElement("security").getValue())  # NOQA
-                    reqFldsData = (fldData.getValue(i).getElement('fieldData'))
-                    for j in range(reqFldsData.numElements()):
-                        fld = flds[j]
-                        val = reqFldsData.getElement(fld).getValue()
-                        data.append((fld, tckr, val, corrID))
-            if ev.eventType() == blpapi.Event.TIMEOUT:
-                # All events processed
-                if (len(data) / len(flds) / len(tickers)) == len(dates):
-                    break
-                else:
-                    raise(RuntimeError("Timeout, increase timeout parameter"))
+
+        data = self._parse_ref(flds, keep_corrId=True, sent_events=len(dates),
+                               timeout=timeout)
         data = pd.DataFrame(data)
-        data.columns = ['field', 'ticker', 'value', 'date']
+        data.columns = ['ticker', 'field', 'value', 'date']
         data = data.sort_values(by='date')
         data = data.reset_index(drop=True)
         data = data.loc[:, ['date', 'field', 'ticker', 'value']]
-
-        if not longdata:
-            cols = ['ticker', 'field']
-            data = data.set_index(['date'] + cols).unstack(cols)
-            data.columns = data.columns.droplevel(0)
-
         return data
 
     def bdib(self, ticker, start_datetime, end_datetime, event_type, interval,
