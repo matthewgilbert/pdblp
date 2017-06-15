@@ -117,6 +117,46 @@ class TestBCon(unittest.TestCase):
         )
         assert_frame_equal(df, df_expect)
 
+    def test_ref_invalid_field(self):
+
+        def run_query():
+            self.con.ref(["EI862261 Corp"], ["not_a_field"])
+
+        self.assertRaises(ValueError, run_query)
+
+    def test_ref_not_applicable_field(self):
+        df = self.con.ref(["EI862261 Corp"], ["MATURITY"])
+        df_expect = pd.DataFrame([["EI862261 Corp", "MATURITY", pd.np.NaN]],
+                                 columns=['ticker', 'field', 'value'])
+        assert_frame_equal(df, df_expect)
+
+    def test_ref_invalid_security(self):
+
+        def run_query():
+            self.con.ref(["NOT_A_TICKER"], ["MATURITY"])
+
+        self.assertRaises(ValueError, run_query)
+
+    def test_ref_applicable_with_not_applicable_field(self):
+        df = self.con.ref("BVIS0587 Index", ["MATURITY", "NAME"])
+        df_exp = pd.DataFrame(
+            [["BVIS0587 Index", "MATURITY", pd.np.NaN],
+             ["BVIS0587 Index", "NAME", "CAD Canada Govt BVAL Curve"]],
+            columns=["ticker", "field", "value"])
+        assert_frame_equal(df, df_exp)
+
+    def test_ref_nested_array_field_data(self):
+        # check only that "field" is a concatenation of top and nested
+        # field values
+        df = self.con.ref("BVIS0587 Index", ["CURVE_TENOR_RATES"])
+        p1 = "CURVE_TENOR_RATES:"
+        self.assertTrue((df.field == p1 + "Tenor").any())
+        self.assertTrue((df.field == p1 + "Tenor Ticker").any())
+        self.assertTrue((df.field == p1 + "Ask Yield").any())
+        self.assertTrue((df.field == p1 + "Mid Yield").any())
+        self.assertTrue((df.field == p1 + "Bid Yield").any())
+        self.assertTrue((df.field == p1 + "Last Update").any())
+
     def test_hist_ref_one_ticker_one_field_longdata_numeric(self):
         df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", "20160104", "20160105", longdata=True)  # NOQA
         df_expect = pd.DataFrame(

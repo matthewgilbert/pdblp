@@ -1,6 +1,5 @@
 import blpapi
 import logging
-import datetime
 import pandas as pd
 import contextlib
 from collections import defaultdict
@@ -257,25 +256,33 @@ class BCon(object):
             ev = self.session.nextEvent(500)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
-                fldData = msg.getElement('securityData')
-                for i in range(fldData.numValues()):
-                    ticker = (fldData.getValue(i).getElement("security").getValue())  # NOQA
-                    reqFldsData = (fldData.getValue(i).getElement('fieldData'))
-                    for j in range(reqFldsData.numElements()):
+                secDataArray = msg.getElement('securityData')
+                for secDataElm in secDataArray.values():
+                    ticker = secDataElm.getElement("security").getValue()
+                    if secDataElm.hasElement("securityError"):
+                        raise ValueError("Unknow security %s" % ticker)
+                    self._check_fieldExceptions(secDataElm.getElement("fieldExceptions"))  # NOQA
+                    fieldData = secDataElm.getElement('fieldData')
+                    for j in range(len(flds)):
                         fld = flds[j]
+                        # this is a slight hack but if a fieldData response
+                        # does not have the element fld and this is not a bad
+                        # field (which is checked above) then the assumption is
+                        # that this is a not applicable field, thus set NaN
+                        if not fieldData.hasElement(fld):
+                            data.append([ticker, fld, pd.np.NaN])
                         # this is for dealing with requests which return arrays
                         # of values for a single field
-                        if reqFldsData.getElement(fld).isArray():
-                            lrng = reqFldsData.getElement(fld).numValues()
-                            for k in range(lrng):
-                                elms = (reqFldsData.getElement(fld).getValue(k).elements())  # NOQA
+                        elif fieldData.getElement(fld).isArray():
+                            for field in fieldData.getElement(fld).values():
                                 # if the elements of the array have multiple
                                 # subelements this will just append them all
                                 # into a list
-                                for elm in elms:
-                                    data.append([ticker, fld, elm.getValue()])
+                                for elm in field.elements():
+                                    mfld = fld + ":" + str(elm.name())
+                                    data.append([ticker, mfld, elm.getValue()])
                         else:
-                            val = reqFldsData.getElement(fld).getValue()
+                            val = fieldData.getElement(fld).getValue()
                             data.append([ticker, fld, val])
 
             if ev.eventType() == blpapi.Event.RESPONSE:
@@ -284,11 +291,22 @@ class BCon(object):
 
         return data
 
+    @staticmethod
+    def _check_fieldExceptions(fieldExceptions):
+        # iterate over an array of fieldExceptions and check for a
+        # INVALID_FIELD error
+
+        INVALID_FIELD = 'INVALID_FIELD'
+        for fe in fieldExceptions.values():
+            category = fe.getElement("errorInfo").getElement("subcategory").getValue()  # NOQA
+            if category == INVALID_FIELD:
+                raise ValueError("%s: %s" % (fe.getElement("fieldId").getValue(), category))  # NOQA
+
     def ref_hist(self, tickers, flds, start_date,
-                 end_date=datetime.date.today().strftime('%Y%m%d'),
-                 timeout=2000, longdata=False):
+                 end_date, timeout=2000, longdata=False,
+                 date_field="REFERENCE_DATE"):
         """
-        Get tickers and fields, periodically override REFERENCE_DATE to create
+        Get tickers and fields, periodically override date_field to create
         a time series. Return pandas dataframe with column MultiIndex
         of tickers and fields if multiple fields given, Index otherwise.
         If single field is given DataFrame is ordered same as tickers,
@@ -307,6 +325,9 @@ class BCon(object):
         timeout: int
             Passed into nextEvent(timeout), number of milliseconds before
             timeout occurs
+        date_field: str
+            Field to iteratively override for requesting historical data,
+            e.g. REFERENCE_DATE, CURVE_DATE, etc.
         """
         # correlationIDs should be unique to a session so rather than
         # managing unique IDs for the duration of the session just restart
@@ -327,7 +348,7 @@ class BCon(object):
         dates = pd.date_range(start_date, end_date, freq='b')
         ovrd = overrides.appendElement()
         for dt in dates:
-            ovrd.setElement("fieldId", "REFERENCE_DATE")
+            ovrd.setElement("fieldId", date_field)
             ovrd.setElement("value", dt.strftime('%Y%m%d'))
             # CorrelationID used to keep track of which response coincides with
             # which request
