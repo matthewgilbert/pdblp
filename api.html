@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>API Reference &mdash; pdblp 0.1.0 documentation</title>
+    <title>API Reference &#8212; pdblp 0.1.1 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,23 +14,27 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.0',
+        VERSION:     '0.1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pdblp 0.1.0 documentation" href="index.html" />
+    <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Tutorial on using pdblp" href="tutorial.html" />
    
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">  
+  <body role="document">
+  
 
     <div class="document">
       <div class="documentwrapper">
@@ -38,8 +42,6 @@
           <div class="body" role="main">
             
   <div class="toctree-wrapper compound">
-<ul class="simple">
-</ul>
 </div>
 <div class="section" id="module-pdblp.pdblp">
 <span id="api-reference"></span><h1>API Reference<a class="headerlink" href="#module-pdblp.pdblp" title="Permalink to this headline">¶</a></h1>
@@ -93,19 +95,22 @@ and response messages to stdout</p>
 <tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.bdib" title="pdblp.pdblp.BCon.bdib"><code class="xref py py-obj docutils literal"><span class="pre">bdib</span></code></a>(ticker,&nbsp;start_datetime,&nbsp;end_datetime,&nbsp;...)</td>
 <td>Get Open, High, Low, Close, Volume, and numEvents for a ticker.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.ref" title="pdblp.pdblp.BCon.ref"><code class="xref py py-obj docutils literal"><span class="pre">ref</span></code></a>(tickers,&nbsp;flds[,&nbsp;ovrds])</td>
+<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.bsrch" title="pdblp.pdblp.BCon.bsrch"><code class="xref py py-obj docutils literal"><span class="pre">bsrch</span></code></a>(domain)</td>
+<td>This function uses the Bloomberg API to retrieve &#8216;bsrch&#8217; (Bloomberg SRCH Data) queries.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.ref" title="pdblp.pdblp.BCon.ref"><code class="xref py py-obj docutils literal"><span class="pre">ref</span></code></a>(tickers,&nbsp;flds[,&nbsp;ovrds])</td>
 <td>Make a reference data request, get tickers and fields, return long</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.ref_hist" title="pdblp.pdblp.BCon.ref_hist"><code class="xref py py-obj docutils literal"><span class="pre">ref_hist</span></code></a>(tickers,&nbsp;flds,&nbsp;start_date[,&nbsp;...])</td>
-<td>Get tickers and fields, periodically override REFERENCE_DATE to create a time series.</td>
+<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.ref_hist" title="pdblp.pdblp.BCon.ref_hist"><code class="xref py py-obj docutils literal"><span class="pre">ref_hist</span></code></a>(tickers,&nbsp;flds,&nbsp;dates[,&nbsp;timeout,&nbsp;...])</td>
+<td>Get tickers and fields, periodically override date_field to create a time series.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.restart" title="pdblp.pdblp.BCon.restart"><code class="xref py py-obj docutils literal"><span class="pre">restart</span></code></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.restart" title="pdblp.pdblp.BCon.restart"><code class="xref py py-obj docutils literal"><span class="pre">restart</span></code></a>()</td>
 <td>Restart the blp session</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.start" title="pdblp.pdblp.BCon.start"><code class="xref py py-obj docutils literal"><span class="pre">start</span></code></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.start" title="pdblp.pdblp.BCon.start"><code class="xref py py-obj docutils literal"><span class="pre">start</span></code></a>()</td>
 <td>start connection and init service for refData</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#pdblp.pdblp.BCon.stop" title="pdblp.pdblp.BCon.stop"><code class="xref py py-obj docutils literal"><span class="pre">stop</span></code></a>()</td>
+<tr class="row-even"><td><a class="reference internal" href="#pdblp.pdblp.BCon.stop" title="pdblp.pdblp.BCon.stop"><code class="xref py py-obj docutils literal"><span class="pre">stop</span></code></a>()</td>
 <td>Close the blp session</td>
 </tr>
 </tbody>
@@ -140,8 +145,9 @@ otherwise MultiIndex is sorted</p>
 <p><strong>elms: list of tuples</strong></p>
 <blockquote>
 <div><p>List of tuples where each tuple corresponds to the other elements
-to be set, refer to A.2.4 HistoricalDataRequest in the
-Developers Guide for more info on these values</p>
+to be set, e.g. [(&#8220;periodicityAdjustment&#8221;, &#8220;ACTUAL&#8221;)]
+Refer to A.2.4 HistoricalDataRequest in the Developers Guide for
+more info on these values</p>
 </div></blockquote>
 <p><strong>ovrds: list of tuples</strong></p>
 <blockquote>
@@ -202,6 +208,30 @@ Developers Guide for more info on these values</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="pdblp.pdblp.BCon.bsrch">
+<code class="descname">bsrch</code><span class="sig-paren">(</span><em>domain</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.bsrch" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function uses the Bloomberg API to retrieve &#8216;bsrch&#8217;
+(Bloomberg SRCH Data) queries. Returns list of tickers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>domain: string</strong></p>
+<p><strong>A character string with the name of the domain to execute.</strong></p>
+<p><strong>It can be a user defined SRCH screen, commodity screen or</strong></p>
+<p><strong>one of the variety of Bloomberg examples. All domains are in the format</strong></p>
+<p><strong>&lt;domain&gt;:&lt;search_name&gt;. Example &#8220;COMDTY:NGFLOW&#8221;</strong></p>
+<p><strong>Returns</strong></p>
+<p><strong>&#8212;&#8212;-</strong></p>
+<p><strong>data: pandas.DataFrame</strong></p>
+<p class="last"><strong>List of bloomberg tickers from the BSRCH</strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pdblp.pdblp.BCon.debug">
 <code class="descname">debug</code><a class="headerlink" href="#pdblp.pdblp.BCon.debug" title="Permalink to this definition">¶</a></dt>
@@ -239,8 +269,8 @@ field and value</p>
 
 <dl class="method">
 <dt id="pdblp.pdblp.BCon.ref_hist">
-<code class="descname">ref_hist</code><span class="sig-paren">(</span><em>tickers</em>, <em>flds</em>, <em>start_date</em>, <em>end_date='20161023'</em>, <em>timeout=2000</em>, <em>longdata=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.ref_hist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get tickers and fields, periodically override REFERENCE_DATE to create
+<code class="descname">ref_hist</code><span class="sig-paren">(</span><em>tickers</em>, <em>flds</em>, <em>dates</em>, <em>timeout=2000</em>, <em>ovrds=[]</em>, <em>date_field='REFERENCE_DATE'</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.BCon.ref_hist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get tickers and fields, periodically override date_field to create
 a time series. Return pandas dataframe with column MultiIndex
 of tickers and fields if multiple fields given, Index otherwise.
 If single field is given DataFrame is ordered same as tickers,
@@ -257,18 +287,25 @@ otherwise MultiIndex is sorted</p>
 <blockquote>
 <div><p>String or list of strings corresponding to FLDS</p>
 </div></blockquote>
-<p><strong>start_date: string</strong></p>
+<p><strong>dates: list</strong></p>
 <blockquote>
-<div><p>String in format YYYYmmdd</p>
-</div></blockquote>
-<p><strong>end_date: string</strong></p>
-<blockquote>
-<div><p>String in format YYYYmmdd</p>
+<div><p>list of date strings in the format YYYYmmdd</p>
 </div></blockquote>
 <p><strong>timeout: int</strong></p>
-<blockquote class="last">
+<blockquote>
 <div><p>Passed into nextEvent(timeout), number of milliseconds before
 timeout occurs</p>
+</div></blockquote>
+<p><strong>ovrds: list of tuples</strong></p>
+<blockquote>
+<div><p>List of tuples where each tuple corresponds to the override
+field and value. This should not include the date_field which will
+be iteratively overridden</p>
+</div></blockquote>
+<p><strong>date_field: str</strong></p>
+<blockquote class="last">
+<div><p>Field to iteratively override for requesting historical data,
+e.g. REFERENCE_DATE, CURVE_DATE, etc.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -296,6 +333,24 @@ timeout occurs</p>
 
 </dd></dl>
 
+<dl class="function">
+<dt id="pdblp.pdblp.bopen">
+<code class="descclassname">pdblp.pdblp.</code><code class="descname">bopen</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pdblp.pdblp.bopen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open and manage a BCon wrapper to a Bloomberg API session</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>**kwargs:</strong></p>
+<blockquote class="last">
+<div><p>Keyword arguments passed into pdblp.BCon initialization</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
@@ -307,7 +362,7 @@ timeout occurs</p>
 <h3><a href="index.html">Table Of Contents</a></h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial on using pdblp</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">API Reference</a><ul class="simple">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul class="simple">
 </ul>
 </li>
 </ul>
@@ -315,14 +370,11 @@ timeout occurs</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -333,8 +385,8 @@ timeout occurs</p>
       &copy;2016, Matthew Gilbert.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.5</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
       
     </div>
 
