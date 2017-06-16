@@ -1,3 +1,14 @@
 # pdblp 0.1.1
 
 - fixed bug where list of parameters persisted over multiple calls
+
+# pdblp 0.1.2
+
+- added context management support with bopen()
+- added bsrch() for Bloomberg SRCH Data
+- added parsing to JSON of string representation of Request and Response
+messages with parser.py module
+- modified ref() to return NaN instead of throwing an error when
+fieldException of NOT_APPLICABLE_TO_REF_DATA is given
+- modified ref_hist() to support any historical reference date override
+instead of just REFERENCE_DATE, e.g. CURVE_DATE
