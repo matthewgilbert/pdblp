@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Tutorial on using pdblp &#8212; pdblp 0.1.1 documentation</title>
+    <title>Tutorial on using pdblp &mdash; pdblp 0.1.1 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,25 +17,21 @@
         VERSION:     '0.1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
+        HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="pdblp 0.1.1 documentation" href="index.html" />
     <link rel="next" title="API Reference" href="api.html" />
     <link rel="prev" title="About pdblp" href="index.html" />
    
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
   </head>
-  <body role="document">
-  
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
@@ -46,18 +42,18 @@
 <h1>Tutorial on using pdblp<a class="headerlink" href="#tutorial-on-using-pdblp" title="Permalink to this headline">¶</a></h1>
 <p>This tutorial provides some simple use cases for <code class="docutils literal"><span class="pre">pdblp</span></code> . To start with,
 import the library and create a <code class="docutils literal"><span class="pre">BCon()</span></code> object</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">pdblp</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">pdblp</span>
 
 <span class="gp">In [2]: </span><span class="n">con</span> <span class="o">=</span> <span class="n">pdblp</span><span class="o">.</span><span class="n">BCon</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8194</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Make sure that you are logged in to a Bloomberg terminal, after which you
 should be able to to start a connection as follows</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="n">con</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [3]: </span><span class="n">con</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>To get some historical data, we can call <code class="docutils literal"><span class="pre">bdh()</span></code></p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [4]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span>
 <span class="go">                &#39;20150629&#39;, &#39;20150630&#39;)</span>
 <span class="go">DEBUG:root:Sending Request:</span>
 <span class="go"> HistoricalDataRequest = {</span>
@@ -105,21 +101,21 @@ should be able to to start a connection as follows</p>
 are printed to stdout. This can be quite useful for debugging but gets
 annoying for normal use, so let&#8217;s turn it off and get some more data. This time
 we request two fields which returns a DataFrame with a MultiIndex by default.</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">con</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [5]: </span><span class="n">con</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="bp">False</span>
 
 <span class="gp">In [6]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;VOLUME&#39;</span><span class="p">],</span>
 <span class="gp">   ...: </span>        <span class="s1">&#39;20150629&#39;</span><span class="p">,</span> <span class="s1">&#39;20150630&#39;</span><span class="p">)</span>
 <span class="gp">   ...: </span>
 <span class="gh">Out[6]: </span><span class="go"></span>
-<span class="go">ticker     SPY US Equity             </span>
-<span class="go">field            PX_LAST       VOLUME</span>
-<span class="go">date                                 </span>
-<span class="go">2015-06-29        205.42  202621332.0</span>
-<span class="go">2015-06-30        205.85  182925106.0</span>
+<span class="go">ticker     SPY US Equity           </span>
+<span class="go">field            PX_LAST     VOLUME</span>
+<span class="go">date                               </span>
+<span class="go">2015-06-29        205.42  202621332</span>
+<span class="go">2015-06-30        205.85  182925106</span>
 </pre></div>
 </div>
 <p>But can also return data in long format</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [7]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;VOLUME&#39;</span><span class="p">],</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [7]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;VOLUME&#39;</span><span class="p">],</span>
 <span class="gp">   ...: </span>        <span class="s1">&#39;20150629&#39;</span><span class="p">,</span> <span class="s1">&#39;20150630&#39;</span><span class="p">,</span> <span class="n">longdata</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="gp">   ...: </span>
 <span class="gh">Out[7]: </span><span class="go"></span>
@@ -131,7 +127,7 @@ we request two fields which returns a DataFrame with a MultiIndex by default.</p
 </pre></div>
 </div>
 <p>You can also override different <code class="docutils literal"><span class="pre">FLDS</span></code>&#8216;s, for example</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;MPMIEZMA Index&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [8]: </span><span class="n">con</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;MPMIEZMA Index&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span>
 <span class="gp">   ...: </span>        <span class="s1">&#39;20150101&#39;</span><span class="p">,</span> <span class="s1">&#39;20150830&#39;</span><span class="p">)</span>
 <span class="gp">   ...: </span>
 <span class="gh">Out[8]: </span><span class="go"></span>
@@ -150,7 +146,7 @@ we request two fields which returns a DataFrame with a MultiIndex by default.</p
 <span class="gp">   ...: </span>        <span class="s1">&#39;20150101&#39;</span><span class="p">,</span> <span class="s1">&#39;20150830&#39;</span><span class="p">,</span>
 <span class="gp">   ...: </span>        <span class="n">ovrds</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;RELEASE_STAGE_OVERRIDE&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">)])</span>
 <span class="gp">   ...: </span>
-<span class="go">                                                                                                                                                                                                                                                                             Out[9]: </span>
+<span class="gh">Out[9]: </span><span class="go"></span>
 <span class="go">ticker     MPMIEZMA Index</span>
 <span class="go">field             PX_LAST</span>
 <span class="go">date                     </span>
@@ -158,7 +154,7 @@ we request two fields which returns a DataFrame with a MultiIndex by default.</p
 </pre></div>
 </div>
 <p>The context can also be managage using <code class="docutils literal"><span class="pre">bopen</span></code></p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="k">with</span> <span class="n">pdblp</span><span class="o">.</span><span class="n">bopen</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">8194</span><span class="p">)</span> <span class="k">as</span> <span class="n">bb</span><span class="p">:</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [10]: </span><span class="k">with</span> <span class="n">pdblp</span><span class="o">.</span><span class="n">bopen</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">8194</span><span class="p">)</span> <span class="k">as</span> <span class="n">bb</span><span class="p">:</span>
 <span class="gp">   ....: </span>    <span class="n">df</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span>
 <span class="gp">   ....: </span>                <span class="s1">&#39;20150629&#39;</span><span class="p">,</span> <span class="s1">&#39;20150630&#39;</span><span class="p">)</span>
 <span class="gp">   ....: </span>
@@ -166,19 +162,19 @@ we request two fields which returns a DataFrame with a MultiIndex by default.</p
 </div>
 <p>The libary also contains functions for accessing reference data, a variety of
 usages are shown below</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">)</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [11]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">)</span>
 <span class="gh">Out[11]: </span><span class="go"></span>
 <span class="go">          ticker      field       value</span>
 <span class="go">0  AUDUSD Curncy  SETTLE_DT  2017-06-21</span>
 
 <span class="gp">In [12]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">([</span><span class="s1">&#39;NZDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">],</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">)</span>
-<span class="go">                                                                                          Out[12]: </span>
+<span class="gh">Out[12]: </span><span class="go"></span>
 <span class="go">          ticker      field       value</span>
 <span class="go">0  NZDUSD Curncy  SETTLE_DT  2017-06-20</span>
 <span class="go">1  AUDUSD Curncy  SETTLE_DT  2017-06-21</span>
 
 <span class="gp">In [13]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">])</span>
-<span class="go">                                                                                                                                                                                                                            Out[13]: </span>
+<span class="gh">Out[13]: </span><span class="go"></span>
 <span class="go">          ticker        field       value</span>
 <span class="go">0  AUDUSD Curncy    SETTLE_DT  2017-06-21</span>
 <span class="go">1  AUDUSD Curncy  DAYS_TO_MTY           0</span>
@@ -186,7 +182,7 @@ usages are shown below</p>
 <span class="gp">In [14]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">([</span><span class="s1">&#39;NZDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">],</span>
 <span class="gp">   ....: </span>        <span class="p">[</span><span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">])</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                    Out[14]: </span>
+<span class="gh">Out[14]: </span><span class="go"></span>
 <span class="go">          ticker        field       value</span>
 <span class="go">0  NZDUSD Curncy    SETTLE_DT  2017-06-20</span>
 <span class="go">1  NZDUSD Curncy  DAYS_TO_MTY           0</span>
@@ -196,7 +192,7 @@ usages are shown below</p>
 <span class="gp">In [15]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;AUDUSD Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span>
 <span class="gp">   ....: </span>        <span class="p">[(</span><span class="s1">&#39;REFERENCE_DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;20150715&#39;</span><span class="p">)])</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Out[15]: </span>
+<span class="gh">Out[15]: </span><span class="go"></span>
 <span class="go">          ticker      field       value</span>
 <span class="go">0  AUDUSD Curncy  SETTLE_DT  2015-07-17</span>
 
@@ -204,7 +200,7 @@ usages are shown below</p>
 <span class="gp">   ....: </span>        <span class="p">[</span><span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">],</span>
 <span class="gp">   ....: </span>        <span class="p">[(</span><span class="s1">&#39;REFERENCE_DATE&#39;</span><span class="p">,</span> <span class="s1">&#39;20150715&#39;</span><span class="p">)])</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          Out[16]: </span>
+<span class="gh">Out[16]: </span><span class="go"></span>
 <span class="go">          ticker        field       value</span>
 <span class="go">0  NZDUSD Curncy    SETTLE_DT  2015-07-17</span>
 <span class="go">1  NZDUSD Curncy  DAYS_TO_MTY           0</span>
@@ -214,7 +210,7 @@ usages are shown below</p>
 <span class="gp">In [17]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="s1">&#39;W 1 Comdty&#39;</span><span class="p">,</span> <span class="s1">&#39;FUT_CHAIN&#39;</span><span class="p">,</span>
 <span class="gp">   ....: </span>        <span class="p">[(</span><span class="s1">&#39;INCLUDE_EXPIRED_CONTRACTS&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">)])</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      Out[17]: </span>
+<span class="gh">Out[17]: </span><span class="go"></span>
 <span class="go">       ticker                           field         value</span>
 <span class="go">0  W 1 Comdty  FUT_CHAIN:Security Description  W N59 Comdty</span>
 <span class="go">1  W 1 Comdty  FUT_CHAIN:Security Description  W U59 Comdty</span>
@@ -229,7 +225,7 @@ is useful to sequentially override the reference date to generate a time
 series. A word of caution, under the hood this is making a number of
 <code class="docutils literal"><span class="pre">ReferenceDataRequest</span></code> s and thus can throttle your daily data limits if
 queried over large date ranges.</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [18]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref_hist</span><span class="p">(</span><span class="s1">&#39;AUD1M Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [18]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref_hist</span><span class="p">(</span><span class="s1">&#39;AUD1M Curncy&#39;</span><span class="p">,</span> <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span>
 <span class="gp">   ....: </span>             <span class="n">dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150626&#39;</span><span class="p">])</span>
 <span class="gp">   ....: </span>
 <span class="gh">Out[18]: </span><span class="go"></span>
@@ -241,7 +237,7 @@ queried over large date ranges.</p>
 <span class="gp">   ....: </span>              <span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span>
 <span class="gp">   ....: </span>              <span class="n">dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150626&#39;</span><span class="p">])</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                    Out[19]: </span>
+<span class="gh">Out[19]: </span><span class="go"></span>
 <span class="go">       date        field        ticker  value</span>
 <span class="go">0  20150625  DAYS_TO_MTY  AUD1M Curncy     30</span>
 <span class="go">1  20150625  DAYS_TO_MTY  NZD1M Curncy     30</span>
@@ -251,7 +247,7 @@ queried over large date ranges.</p>
 <span class="gp">In [20]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref_hist</span><span class="p">(</span><span class="s1">&#39;AUD1M Curncy&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">],</span>
 <span class="gp">   ....: </span>             <span class="n">dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150626&#39;</span><span class="p">])</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                                                    Out[20]: </span>
+<span class="gh">Out[20]: </span><span class="go"></span>
 <span class="go">       date        field        ticker       value</span>
 <span class="go">0  20150625  DAYS_TO_MTY  AUD1M Curncy          30</span>
 <span class="go">1  20150625    SETTLE_DT  AUD1M Curncy  2015-07-29</span>
@@ -262,7 +258,7 @@ queried over large date ranges.</p>
 <span class="gp">   ....: </span>             <span class="p">[</span><span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">],</span>
 <span class="gp">   ....: </span>             <span class="n">dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150626&#39;</span><span class="p">])</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             Out[21]: </span>
+<span class="gh">Out[21]: </span><span class="go"></span>
 <span class="go">       date        field        ticker       value</span>
 <span class="go">0  20150625  DAYS_TO_MTY  AUD1M Curncy          30</span>
 <span class="go">1  20150625    SETTLE_DT  AUD1M Curncy  2015-07-29</span>
@@ -277,7 +273,7 @@ queried over large date ranges.</p>
 <span class="gp">   ....: </span>             <span class="p">[</span><span class="s1">&#39;DAYS_TO_MTY&#39;</span><span class="p">,</span> <span class="s1">&#39;SETTLE_DT&#39;</span><span class="p">],</span>
 <span class="gp">   ....: </span>             <span class="n">dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;20150625&#39;</span><span class="p">,</span> <span class="s1">&#39;20150626&#39;</span><span class="p">])</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  Out[22]: </span>
+<span class="gh">Out[22]: </span><span class="go"></span>
 <span class="go">       date        field        ticker       value</span>
 <span class="go">0  20150625  DAYS_TO_MTY  AUD1M Curncy          30</span>
 <span class="go">1  20150625    SETTLE_DT  AUD1M Curncy  2015-07-29</span>
@@ -289,9 +285,10 @@ queried over large date ranges.</p>
 <span class="go">7  20150626    SETTLE_DT  NZD1M Curncy  2015-07-31</span>
 
 <span class="gp">In [23]: </span><span class="n">con</span><span class="o">.</span><span class="n">ref_hist</span><span class="p">(</span><span class="s2">&quot;BVIS0587 Index&quot;</span><span class="p">,</span> <span class="s2">&quot;CURVE_TENOR_RATES&quot;</span><span class="p">,</span>
-<span class="gp">   ....: </span>             <span class="n">dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;20160625&#39;</span><span class="p">],</span> <span class="n">date_field</span><span class="o">=</span><span class="s2">&quot;CURVE_DATE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gp">   ....: </span>             <span class="n">dates</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;20160625&#39;</span><span class="p">],</span>
+<span class="gp">   ....: </span>             <span class="n">date_field</span><span class="o">=</span><span class="s2">&quot;CURVE_DATE&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 <span class="gp">   ....: </span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       Out[23]: </span>
+<span class="gh">Out[23]: </span><span class="go"></span>
 <span class="go">       date                           field          ticker           value</span>
 <span class="go">0  20160625         CURVE_TENOR_RATES:Tenor  BVIS0587 Index              3M</span>
 <span class="go">1  20160625     CURVE_TENOR_RATES:Bid Yield  BVIS0587 Index           1.231</span>
@@ -303,7 +300,7 @@ queried over large date ranges.</p>
 <p>A useful trick to avoid throttling your connection when querying large data or
 to ensure you can reproduce your results without a connection in the future is
 to make use of the excellent <code class="docutils literal"><span class="pre">joblib</span></code> library. For example</p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [24]: </span><span class="kn">import</span> <span class="nn">joblib</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [24]: </span><span class="kn">import</span> <span class="nn">joblib</span>
 
 <span class="gp">In [25]: </span><span class="kn">import</span> <span class="nn">shutil</span>
 
@@ -317,9 +314,9 @@ to make use of the excellent <code class="docutils literal"><span class="pre">jo
 
 <span class="gp">In [30]: </span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">,</span> <span class="s1">&#39;20150630&#39;</span><span class="p">)</span>
 <span class="go">________________________________________________________________________________</span>
-<span class="go">[Memory] Calling pdblp.pdblp.bdh...</span>
+<span class="go">[Memory] Calling pdblp.pdblp.BCon.bdh...</span>
 <span class="go">bdh(&#39;SPY US Equity&#39;, &#39;PX_LAST&#39;, &#39;20150629&#39;, &#39;20150630&#39;)</span>
-<span class="go">______________________________________________________________bdh - 0.1s, 0.0min</span>
+<span class="go">______________________________________________________________bdh - 0.0s, 0.0min</span>
 <span class="gh">Out[30]: </span><span class="go"></span>
 <span class="go">ticker     SPY US Equity</span>
 <span class="go">field            PX_LAST</span>
@@ -328,7 +325,7 @@ to make use of the excellent <code class="docutils literal"><span class="pre">jo
 <span class="go">2015-06-30        205.85</span>
 
 <span class="gp">In [31]: </span><span class="n">bdh</span><span class="p">(</span><span class="s1">&#39;SPY US Equity&#39;</span><span class="p">,</span> <span class="s1">&#39;PX_LAST&#39;</span><span class="p">,</span> <span class="s1">&#39;20150629&#39;</span><span class="p">,</span> <span class="s1">&#39;20150630&#39;</span><span class="p">)</span>
-<span class="go">                                                                                                                                                                                                                                                                                                                                                                                                     Out[31]: </span>
+<span class="gh">Out[31]: </span><span class="go"></span>
 <span class="go">ticker     SPY US Equity</span>
 <span class="go">field            PX_LAST</span>
 <span class="go">date                    </span>
@@ -339,7 +336,7 @@ to make use of the excellent <code class="docutils literal"><span class="pre">jo
 </pre></div>
 </div>
 <p>You can also access Bloomberg SRCH data using <code class="docutils literal"><span class="pre">bsrch</span></code></p>
-<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">con</span><span class="o">.</span><span class="n">bsrch</span><span class="p">(</span><span class="s2">&quot;COMDTY:VESSEL&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<div class="highlight-ipython"><div class="highlight"><pre><span class="gp">In [33]: </span><span class="n">con</span><span class="o">.</span><span class="n">bsrch</span><span class="p">(</span><span class="s2">&quot;COMDTY:VESSEL&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 <span class="gh">Out[33]: </span><span class="go"></span>
 <span class="go">                  0</span>
 <span class="go">0  IMO1000019 Index</span>
@@ -359,18 +356,21 @@ to make use of the excellent <code class="docutils literal"><span class="pre">jo
         <div class="sphinxsidebarwrapper">
 <h3><a href="index.html">Table Of Contents</a></h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial on using pdblp</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Tutorial on using pdblp</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
 </ul>
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -381,8 +381,8 @@ to make use of the excellent <code class="docutils literal"><span class="pre">jo
       &copy;2016, Matthew Gilbert.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
     </div>
 
