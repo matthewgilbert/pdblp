@@ -128,10 +128,10 @@ class BCon(object):
     def bdh(self, tickers, flds, start_date, end_date, elms=[],
             ovrds=[], longdata=False):
         """
-        Get tickers and fields, return pandas dataframe with column MultiIndex
-        of tickers and fields if multiple fields given an Index otherwise.
-        If single field is given DataFrame is ordered same as tickers,
-        otherwise MultiIndex is sorted
+        Get tickers and fields, return pandas Dataframe with columns as
+        MultiIndex with levels "ticker" and "field" and indexed by "date".
+        If long data is requested return DataFrame with columns
+        ["date", "ticker", "field", "value"].
 
         Parameters
         ----------
