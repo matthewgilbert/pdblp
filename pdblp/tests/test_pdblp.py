@@ -86,10 +86,11 @@ class TestBCon(unittest.TestCase):
     def test_ref_one_ticker_one_field(self):
         df = self.con.ref('AUD Curncy', 'NAME')
         df_expect = pd.DataFrame(
-            columns=["ticker", "field", "value"],
-            data=[["AUD Curncy", "NAME", "Australian Dollar Spot"]]
+            columns=["ticker", "NAME"],
+            data=[["AUD Curncy", "Australian Dollar Spot"]]
         )
         assert_frame_equal(df, df_expect)
+
 
     def test_ref_one_ticker_one_field_many_output(self):
         df = self.con.ref('CL1 Comdty', 'FUT_CHAIN')
@@ -109,10 +110,10 @@ class TestBCon(unittest.TestCase):
 
     def test_ref_one_ticker_one_field_override(self):
         df = self.con.ref('AUD Curncy', 'SETTLE_DT',
-                          [("REFERENCE_DATE", "20161010")])
+                          {'SETTLE_DT': [("REFERENCE_DATE", "20161010")]})
         df_expect = pd.DataFrame(
-            columns=["ticker", "field", "value"],
-            data=[["AUD Curncy", "SETTLE_DT",
+            columns=["ticker", "SETTLE_DT"],
+            data=[["AUD Curncy",
                   pd.datetime(2016, 10, 12).date()]]
         )
         assert_frame_equal(df, df_expect)
@@ -126,36 +127,37 @@ class TestBCon(unittest.TestCase):
 
     def test_ref_not_applicable_field(self):
         df = self.con.ref(["EI862261 Corp"], ["MATURITY"])
-        df_expect = pd.DataFrame([["EI862261 Corp", "MATURITY", pd.np.NaN]],
-                                 columns=['ticker', 'field', 'value'])
+        df_expect = pd.DataFrame([["EI862261 Corp", pd.np.NaN]],
+                                 columns=['ticker', 'MATURITY'])
         assert_frame_equal(df, df_expect)
 
     def test_ref_invalid_security(self):
 
         def run_query():
             self.con.ref(["NOT_A_TICKER"], ["MATURITY"])
-
         self.assertRaises(ValueError, run_query)
+    
 
     def test_ref_applicable_with_not_applicable_field(self):
         df = self.con.ref("BVIS0587 Index", ["MATURITY", "NAME"])
         df_exp = pd.DataFrame(
-            [["BVIS0587 Index", "MATURITY", pd.np.NaN],
-             ["BVIS0587 Index", "NAME", "CAD Canada Govt BVAL Curve"]],
-            columns=["ticker", "field", "value"])
+            [["BVIS0587 Index", pd.np.NaN, "CAD Canada Govt BVAL Curve"]],
+            columns=["ticker", "MATURITY", "NAME"])
         assert_frame_equal(df, df_exp)
+
 
     def test_ref_nested_array_field_data(self):
         # check only that "field" is a concatenation of top and nested
         # field values
         df = self.con.ref("BVIS0587 Index", ["CURVE_TENOR_RATES"])
         p1 = "CURVE_TENOR_RATES:"
-        self.assertTrue((df.field == p1 + "Tenor").any())
-        self.assertTrue((df.field == p1 + "Tenor Ticker").any())
-        self.assertTrue((df.field == p1 + "Ask Yield").any())
-        self.assertTrue((df.field == p1 + "Mid Yield").any())
-        self.assertTrue((df.field == p1 + "Bid Yield").any())
-        self.assertTrue((df.field == p1 + "Last Update").any())
+        self.assertTrue((df.columns == p1 + "Tenor").any())
+        self.assertTrue((df.columns == p1 + "Tenor Ticker").any())
+        self.assertTrue((df.columns == p1 + "Ask Yield").any())
+        self.assertTrue((df.columns == p1 + "Mid Yield").any())
+        self.assertTrue((df.columns == p1 + "Bid Yield").any())
+        self.assertTrue((df.columns == p1 + "Last Update").any())
+
 
     def test_hist_ref_one_ticker_one_field_numeric(self):
         dates = ["20160104", "20160105"]

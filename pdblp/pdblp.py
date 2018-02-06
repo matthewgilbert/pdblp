@@ -124,6 +124,38 @@ class BCon(object):
             ovrd.setElement("value", ovrd_val)
 
         return request
+    
+    def _create_req_update(self, rtype, tickers, fld, ovrd, setvals):
+
+    # flush event queue in case previous call errored out
+    while(self.session.tryNextEvent()):
+        pass
+
+    request = self.refDataService.createRequest(rtype)
+    for t in tickers:
+        request.getElement("securities").appendValue(t)
+    request.getElement("fields").appendValue(fld)
+    for name, val in setvals:
+        request.set(name, val)
+
+    overrides = request.getElement("overrides")
+    for ovrd_fld, ovrd_val in ovrd:
+        ovrd = overrides.appendElement()
+        ovrd.setElement("fieldId", ovrd_fld)
+        ovrd.setElement("value", ovrd_val)
+
+    return request
+
+    def _create_reqs(self, rtype, tickers, flds, ovrds, setvals):
+
+    requests = []
+    for fld in flds:
+        if fld in ovrds:
+            requests.append(self._create_req_update(rtype, tickers, fld, ovrds[fld], setvals))
+        else:
+            requests.append(self._create_req_update(rtype, tickers, fld, [], setvals))
+    
+    return requests
 
     def bdh(self, tickers, flds, start_date, end_date, elms=[],
             ovrds=[], longdata=False):
@@ -234,17 +266,31 @@ class BCon(object):
         if type(flds) is not list:
             flds = [flds]
 
-        request = self._create_req("ReferenceDataRequest", tickers, flds,
+        requests = self._create_reqs("ReferenceDataRequest", tickers, flds,
                                    ovrds, [])
+        result_frame = DataFrame({'ticker' : tickers})
+        for i in range(len(requests)):
+            request = requests[i]
+            logging.debug("Sending Request:\n %s" % request)
+            self.session.sendRequest(request)
+            data = self._parse_ref([flds[i]])
+            data = DataFrame(data)
+            data.columns = ["ticker", "field", "value"]
+            grouped = data.groupby('field')
+            sub_data = pd.DataFrame()
+            for key in grouped.groups:
+                sub_frame = grouped.get_group(key)
+                sub_frame = data.drop(['field'], axis=1)
+                sub_frame.rename(columns={'value' : key}, inplace=True)
+                if len(sub_data)==0:
+                    sub_data = sub_frame
+                else:
+                    sub_data[key] = sub_frame[key]
 
-        logging.debug("Sending Request:\n %s" % request)
-        self.session.sendRequest(request)
-        data = self._parse_ref(flds)
-        data = DataFrame(data)
-        data.columns = ["ticker", "field", "value"]
-        return data
+            result_frame = result_frame.merge(sub_data, on='ticker', how='left')
+        return result_frame
 
-    def _parse_ref(self, flds, keep_corrId=False, sent_events=1, timeout=500):
+    def _parse_ref(self, flds, keep_corrId=False, sent_events=1, timeout=2000):
         data = []
         # Process received events
         while(True):
