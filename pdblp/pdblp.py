@@ -25,7 +25,7 @@ def bopen(**kwargs):
 
 
 class BCon(object):
-    def __init__(self, host='localhost', port=8194, debug=False):
+    def __init__(self, host='localhost', port=8194, debug=False, timeout=500):
         """
         Create an object which manages connection to the Bloomberg API session
 
@@ -38,6 +38,9 @@ class BCon(object):
         debug: Boolean {True, False}
             Boolean corresponding to whether to log Bloomberg Open API request
             and response messages to stdout
+        timeout: int
+            Number of milliseconds before timeout occurs when parsing response.
+            See blp.Session.nextEvent() for more information.
         """
         # Fill SessionOptions
         sessionOptions = blpapi.SessionOptions()
@@ -46,6 +49,7 @@ class BCon(object):
         self._sessionOptions = sessionOptions
         # Create a Session
         self.session = blpapi.Session(sessionOptions)
+        self.timeout = timeout
         # initialize logger
         self.debug = debug
 
@@ -192,7 +196,7 @@ class BCon(object):
         # Process received events
         while(True):
             # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(500)
+            ev = self.session.nextEvent(self.timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
                 if msg.getElement('securityData').hasElement('securityError') or (msg.getElement('securityData').getElement("fieldExceptions").numValues() > 0):  # NOQA
@@ -244,12 +248,12 @@ class BCon(object):
         data.columns = ["ticker", "field", "value"]
         return data
 
-    def _parse_ref(self, flds, keep_corrId=False, sent_events=1, timeout=500):
+    def _parse_ref(self, flds, keep_corrId=False, sent_events=1):
         data = []
         # Process received events
         while(True):
             # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(timeout)
+            ev = self.session.nextEvent(self.timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
                 if keep_corrId:
@@ -296,9 +300,10 @@ class BCon(object):
                 sent_events = sent_events - 1
                 if sent_events == 0:
                     break
-            # for ref_hist() calls this occassionally times out
+            # calls can occassionally timeout in unpredictable manner due
+            # to variability in BBG response times
             elif ev.eventType() == blpapi.Event.TIMEOUT:
-                raise RuntimeError("Timeout, increase timeout parameter")
+                raise RuntimeError("Timeout, increase BCon.timeout attribute")
 
         return data
 
@@ -313,7 +318,7 @@ class BCon(object):
             if category == INVALID_FIELD:
                 raise ValueError("%s: %s" % (fe.getElement("fieldId").getValue(), category))  # NOQA
 
-    def ref_hist(self, tickers, flds, dates, timeout=2000, ovrds=[],
+    def ref_hist(self, tickers, flds, dates, ovrds=[],
                  date_field="REFERENCE_DATE"):
         """
         Get tickers and fields, periodically override date_field to create
@@ -330,9 +335,6 @@ class BCon(object):
             String or list of strings corresponding to FLDS
         dates: list
             list of date strings in the format YYYYmmdd
-        timeout: int
-            Passed into nextEvent(timeout), number of milliseconds before
-            timeout occurs
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value. This should not include the date_field which will
@@ -366,8 +368,7 @@ class BCon(object):
             logging.debug("Sending Request:\n %s" % request)
             self.session.sendRequest(request, correlationId=cid)
 
-        data = self._parse_ref(flds, keep_corrId=True, sent_events=len(dates),
-                               timeout=timeout)
+        data = self._parse_ref(flds, keep_corrId=True, sent_events=len(dates))
         data = pd.DataFrame(data)
         data.columns = ['ticker', 'field', 'value', 'date']
         data = data.sort_values(by='date')
@@ -422,7 +423,7 @@ class BCon(object):
         flds = ['open', 'high', 'low', 'close', 'volume', 'numEvents']
         while(True):
             # We provide timeout to give the chance for Ctrl+C handling:
-            ev = self.session.nextEvent(500)
+            ev = self.session.nextEvent(self.timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
                 barTick = (msg.getElement('barData')
@@ -465,7 +466,7 @@ class BCon(object):
         # Process received events
         while True:
             # We provide timeout to give the chance for Ctrl+C handling:
-            event = self.session.nextEvent(0)
+            event = self.session.nextEvent(self.timeout)
             if event.eventType() == blpapi.Event.RESPONSE or \
                event.eventType() == blpapi.Event.PARTIAL_RESPONSE:
                 for msg in event:

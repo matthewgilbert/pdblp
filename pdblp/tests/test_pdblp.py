@@ -10,7 +10,7 @@ IP_PORT = 8194
 class TestBCon(unittest.TestCase):
 
     def setUp(self):
-        self.con = pdblp.BCon(port=IP_PORT)
+        self.con = pdblp.BCon(port=IP_PORT, timeout=5000)
         self.con.start()
 
     def tearDown(self):
@@ -71,14 +71,16 @@ class TestBCon(unittest.TestCase):
         assert_frame_equal(df, df_expect)
 
     def test_bdib(self):
-        df = self.con.bdib('SPY US Equity', '2017-06-12T10:00:00',
-                           '2017-06-12T10:20:01', event_type="BID",
+        # BBG has limited history for the IntradayBarRequest service so this
+        # needs to be periodically updated
+        df = self.con.bdib('SPY US Equity', '2018-02-09T10:00:00',
+                           '2018-02-09T10:20:01', event_type="BID",
                            interval=10)
-        idx = pd.DatetimeIndex(["2017-06-12T10:00:00", "2017-06-12T10:10:00",
-                                "2017-06-12T10:20:00"])
-        data = [[242.84, 242.84, 242.76, 242.84, 12535, 277],
-                [242.84, 242.87, 242.76, 242.79, 7790, 194],
-                [242.79, 242.79, 242.76, 242.79, 615, 13]]
+        idx = pd.DatetimeIndex(["2018-02-09T10:00:00", "2018-02-09T10:10:00",
+                                "2018-02-09T10:20:00"])
+        data = [[260.85, 260.90, 260.50, 260.58, 8038, 938],
+                [260.58, 260.72, 260.34, 260.64, 11795, 1460],
+                [260.64, 260.78, 260.64, 260.77, 964, 116]]
         cols = ["open", "high", "low", "close", "volume", "numEvents"]
         df_expect = pd.DataFrame(data=data, index=idx, columns=cols)
         assert_frame_equal(df, df_expect)
