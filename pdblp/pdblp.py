@@ -286,7 +286,11 @@ class BCon(object):
                                 # into a list
                                 for elm in field.elements():
                                     mfld = fld + ":" + str(elm.name())
-                                    dataj = [ticker, mfld, elm.getValue()]
+                                    if not elm.isNull():
+                                        val = elm.getValue()
+                                    else:
+                                        val = pd.np.NaN
+                                    dataj = [ticker, mfld, val]
                                     dataj.extend(corrId)
                                     data.append(dataj)
                         else:

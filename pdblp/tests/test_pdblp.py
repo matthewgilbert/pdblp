@@ -188,6 +188,12 @@ class TestBCon(unittest.TestCase):
         # simply check that the response was sent off and correctly received
         self.assertIsInstance(df, pd.DataFrame)
 
+    def test_null_scalar_sub_element(self):
+        # related to https://github.com/matthewgilbert/pdblp/issues/32
+        ovrds = [("DVD_START_DT", "19860101"), ("DVD_END_DT", "19870101")]
+        df = self.con.ref("101 HK EQUITY", "DVD_HIST", ovrds=ovrds)
+        self.assertIsInstance(df, pd.DataFrame)
+
     def test_context_manager(self):
         with pdblp.bopen(port=IP_PORT) as bb:
             df = bb.bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
