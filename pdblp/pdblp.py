@@ -205,7 +205,7 @@ class BCon(object):
                                        .getElement("fieldExceptions")
                                        .numValues() > 0)
                 if has_security_error or has_field_exception:
-                    raise Exception(msg)
+                    raise ValueError(msg)
                 ticker = (msg.getElement('securityData')
                           .getElement('security').getValue())
                 fldDatas = (msg.getElement('securityData')

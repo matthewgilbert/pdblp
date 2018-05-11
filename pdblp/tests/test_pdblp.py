@@ -70,6 +70,14 @@ class TestBCon(unittest.TestCase):
         df_expect.loc[:, "value"] = pd.np.float64(df_expect.loc[:, "value"])
         assert_frame_equal(df, df_expect)
 
+    def test_bdh_value_errors(self):
+        bad_col = "not_a_fld"
+        self.assertRaises(ValueError, self.con.bdh, "SPY US Equity", bad_col,
+                          "20150630", "20150630")
+        bad_ticker = "not_a_ticker"
+        self.assertRaises(ValueError, self.con.bdh, bad_ticker, "PX_LAST",
+                          "20150630", "20150630")
+
     def test_bdib(self):
         # BBG has limited history for the IntradayBarRequest service so this
         # needs to be periodically updated
