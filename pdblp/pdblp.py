@@ -199,10 +199,17 @@ class BCon(object):
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
-                if msg.getElement('securityData').hasElement('securityError') or (msg.getElement('securityData').getElement("fieldExceptions").numValues() > 0):  # NOQA
+                has_security_error = (msg.getElement('securityData')
+                                      .hasElement('securityError'))
+                has_field_exception = (msg.getElement('securityData')
+                                       .getElement("fieldExceptions")
+                                       .numValues() > 0)
+                if has_security_error or has_field_exception:
                     raise Exception(msg)
-                ticker = msg.getElement('securityData').getElement('security').getValue()  # NOQA
-                fldDatas = msg.getElement('securityData').getElement('fieldData')  # NOQA
+                ticker = (msg.getElement('securityData')
+                          .getElement('security').getValue())
+                fldDatas = (msg.getElement('securityData')
+                            .getElement('fieldData'))
                 for fd in fldDatas.values():
                     dt = fd.getElement('date').getValue()
                     for element in fd.elements():
