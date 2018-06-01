@@ -149,9 +149,9 @@ class BCon(object):
             String in format YYYYmmdd
         elms: list of tuples
             List of tuples where each tuple corresponds to the other elements
-            to be set, e.g. [("periodicityAdjustment", "ACTUAL")]
-            Refer to A.2.4 HistoricalDataRequest in the Developers Guide for
-            more info on these values
+            to be set, e.g. [("periodicityAdjustment", "ACTUAL")].
+            Refer to the HistoricalDataRequest section in the
+            'Services & schemas reference guide' for more info on these values
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value
@@ -580,8 +580,8 @@ class BCon(object):
             Length of time bars
         elms: list of tuples
             List of tuples where each tuple corresponds to the other elements
-            to be set, refer to A.2.8 IntradayBarRequest in the
-            Developers Guide for more info on these values
+            to be set. Refer to the IntradayBarRequest section in the
+            'Services & schemas reference guide' for more info on these values
         """
         # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):

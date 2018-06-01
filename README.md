@@ -65,3 +65,10 @@ logged into a Bloomberg terminal as this is required for building many of the
 examples.
 
 An online version of the documentation can be view at https://matthewgilbert.github.io/pdblp/
+
+## Bloomberg Documentation
+
+For general documentation on the Bloomberg API check out the Developer's Guide.
+For documentation on relevant Bloomberg fields for accessing data, check out
+the Reference Guide: Services and Schemas. To access these, from a
+Bloomberg Terminal go `WAPI <GO>` -> `API Developer's Guide`.
