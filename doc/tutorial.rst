@@ -8,7 +8,7 @@ import the library and create a ``BCon()`` object
 
     In [1]: import pdblp
 
-    In [2]: con = pdblp.BCon(debug=True, port=8194)
+    In [2]: con = pdblp.BCon(debug=True, port=8194, timeout=5000)
 
 Make sure that you are logged in to a Bloomberg terminal, after which you
 should be able to to start a connection as follows
@@ -120,8 +120,8 @@ usages are shown below
     con.ref(['NZDUSD Curncy', 'AUDUSD Curncy'],
             ['SETTLE_DT', 'DAYS_TO_MTY'],
             [('REFERENCE_DATE', '20150715')])
-    con.ref('W 1 Comdty', 'FUT_CHAIN',
-            [('INCLUDE_EXPIRED_CONTRACTS', 'Y')]).head()
+    con.bulkref('W 1 Comdty', 'FUT_CHAIN',
+                [('INCLUDE_EXPIRED_CONTRACTS', 'Y')]).head()
 
 There are some types of reference data which cannot be downloaded in batch
 but support overriding the reference date. For this type of data, ``ref_hist()``
@@ -145,9 +145,9 @@ queried over large date ranges.
     con.ref_hist(['AUD1M Curncy', 'NZD1M Curncy'],
                  ['DAYS_TO_MTY', 'SETTLE_DT'],
                  dates=['20150625', '20150626'])
-    con.ref_hist("BVIS0587 Index", "CURVE_TENOR_RATES",
-                 dates=['20160625'],
-                 date_field="CURVE_DATE").head()
+    con.bulkref_hist("BVIS0587 Index", "CURVE_TENOR_RATES",
+                     dates=['20160625'],
+                    date_field="CURVE_DATE").head()
 
 A useful trick to avoid throttling your connection when querying large data or
 to ensure you can reproduce your results without a connection in the future is
