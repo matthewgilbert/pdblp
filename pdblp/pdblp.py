@@ -195,7 +195,6 @@ class BCon(object):
         data = []
         # Process received events
         while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
@@ -272,7 +271,6 @@ class BCon(object):
         data = []
         # Process received events
         while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
@@ -386,7 +384,6 @@ class BCon(object):
         data = []
         # Process received events
         while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
@@ -608,7 +605,6 @@ class BCon(object):
         # Process received events
         flds = ['open', 'high', 'low', 'close', 'volume', 'numEvents']
         while(True):
-            # We provide timeout to give the chance for Ctrl+C handling:
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
                 logging.debug("Message Received:\n %s" % msg)
@@ -651,7 +647,6 @@ class BCon(object):
         data = []
         # Process received events
         while True:
-            # We provide timeout to give the chance for Ctrl+C handling:
             event = self.session.nextEvent(self.timeout)
             if event.eventType() == blpapi.Event.RESPONSE or \
                event.eventType() == blpapi.Event.PARTIAL_RESPONSE:
