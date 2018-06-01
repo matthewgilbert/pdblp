@@ -238,16 +238,29 @@ class BCon(object):
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value
-        """
 
+        Example
+        -------
+        >>> import pdblp
+        >>> con = pdblp.BCon()
+        >>> con.start()
+        >>> con.ref("CL1 Comdty", ["FUT_GEN_MONTH"])
+
+        Notes
+        -----
+        This returns reference data which has singleton values. In raw format
+        the messages passed back contain data of the form
+
+        fieldData = {
+                FUT_GEN_MONTH = "FGHJKMNQUVXZ"
+        }
+        """
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
             flds = [flds]
-
         request = self._create_req("ReferenceDataRequest", tickers, flds,
                                    ovrds, [])
-
         logging.debug("Sending Request:\n %s" % request)
         self.session.sendRequest(request)
         data = self._parse_ref(flds)
@@ -276,30 +289,22 @@ class BCon(object):
                     fieldData = secDataElm.getElement('fieldData')
                     for j in range(len(flds)):
                         fld = flds[j]
+                        # avoid returning nested bbg objects, fail instead
+                        # since user should use bulkref()
+                        if fieldData.hasElement(fld):
+                            if fieldData.getElement(fld).isArray():
+                                raise ValueError("Field '{0}' returns bulk "
+                                                 "reference data which is not "
+                                                 "supported".format(fld))
                         # this is a slight hack but if a fieldData response
                         # does not have the element fld and this is not a bad
                         # field (which is checked above) then the assumption is
                         # that this is a not applicable field, thus set NaN
+                        # see https://github.com/matthewgilbert/pdblp/issues/13
                         if not fieldData.hasElement(fld):
                             dataj = [ticker, fld, pd.np.NaN]
                             dataj.extend(corrId)
                             data.append(dataj)
-                        # this is for dealing with requests which return arrays
-                        # of values for a single field
-                        elif fieldData.getElement(fld).isArray():
-                            for field in fieldData.getElement(fld).values():
-                                # if the elements of the array have multiple
-                                # subelements this will just append them all
-                                # into a list
-                                for elm in field.elements():
-                                    mfld = fld + ":" + str(elm.name())
-                                    if not elm.isNull():
-                                        val = elm.getValue()
-                                    else:
-                                        val = pd.np.NaN
-                                    dataj = [ticker, mfld, val]
-                                    dataj.extend(corrId)
-                                    data.append(dataj)
                         else:
                             val = fieldData.getElement(fld).getValue()
                             dataj = [ticker, fld, val]
@@ -315,7 +320,115 @@ class BCon(object):
             # to variability in BBG response times
             elif ev.eventType() == blpapi.Event.TIMEOUT:
                 raise RuntimeError("Timeout, increase BCon.timeout attribute")
+        return data
 
+    def bulkref(self, tickers, flds, ovrds=[]):
+        """
+        Make a bulk reference data request, get tickers and fields, return long
+        pandas Dataframe with columns [ticker, field, name, value, position].
+        Name refers to the element name and position is the position in the
+        corresponding array returned.
+
+        Parameters
+        ----------
+        tickers: {list, string}
+            String or list of strings corresponding to tickers
+        flds: {list, string}
+            String or list of strings corresponding to FLDS
+        ovrds: list of tuples
+            List of tuples where each tuple corresponds to the override
+            field and value
+
+        Example
+        -------
+        >>> import pdblp
+        >>> con = pdblp.BCon()
+        >>> con.start()
+        >>> con.bulkref('BCOM Index', 'INDX_MWEIGHT')
+
+        Notes
+        -----
+        This returns bulk reference data which has array values. In raw format
+        the messages passed back contain data of the form
+
+        fieldData = {
+            INDX_MWEIGHT[] = {
+                INDX_MWEIGHT = {
+                    Member Ticker and Exchange Code = "BON8"
+                    Percentage Weight = 2.410000
+                }
+                INDX_MWEIGHT = {
+                    Member Ticker and Exchange Code = "C N8"
+                    Percentage Weight = 6.560000
+                }
+                INDX_MWEIGHT = {
+                    Member Ticker and Exchange Code = "CLN8"
+                    Percentage Weight = 7.620000
+                }
+            }
+        }
+        """
+        if type(tickers) is not list:
+            tickers = [tickers]
+        if type(flds) is not list:
+            flds = [flds]
+        setvals = []
+        request = self._create_req("ReferenceDataRequest", tickers, flds,
+                                   ovrds, setvals)
+        logging.debug("Sending Request:\n %s" % request)
+        self.session.sendRequest(request)
+        data = self._parse_bulkref(flds)
+        data = DataFrame(data)
+        data.columns = ["ticker", "field", "name", "value", "position"]
+        return data
+
+    def _parse_bulkref(self, flds, keep_corrId=False, sent_events=1):
+        data = []
+        # Process received events
+        while(True):
+            # We provide timeout to give the chance for Ctrl+C handling:
+            ev = self.session.nextEvent(self.timeout)
+            for msg in ev:
+                logging.debug("Message Received:\n %s" % msg)
+                if keep_corrId:
+                    corrId = [msg.correlationIds()[0].value()]
+                else:
+                    corrId = []
+                secDataArray = msg.getElement('securityData')
+                for secDataElm in secDataArray.values():
+                    ticker = secDataElm.getElement("security").getValue()
+                    if secDataElm.hasElement("securityError"):
+                        raise ValueError("Unknow security %s" % ticker)
+                    self._check_fieldExceptions(secDataElm.getElement("fieldExceptions"))  # NOQA
+                    fieldData = secDataElm.getElement('fieldData')
+                    for j in range(len(flds)):
+                        fld = flds[j]
+                        # fail coherently instead of parsing downstream
+                        if not fieldData.getElement(fld).isArray():
+                            raise ValueError("Cannot parse field '{0}' which "
+                                             "is not bulk reference data"
+                                             .format(fld))
+                        arrayValues = fieldData.getElement(fld).values()
+                        for i, field in enumerate(arrayValues):
+                            for elm in field.elements():
+                                value_name = str(elm.name())
+                                if not elm.isNull():
+                                    val = elm.getValue()
+                                else:
+                                    val = pd.np.NaN
+                                dataj = [ticker, fld, value_name, val, i]
+                                dataj.extend(corrId)
+                                data.append(dataj)
+
+            if ev.eventType() == blpapi.Event.RESPONSE:
+                # Response completely received, so we could exit
+                sent_events = sent_events - 1
+                if sent_events == 0:
+                    break
+            # calls can occassionally timeout in unpredictable manner due
+            # to variability in BBG response times
+            elif ev.eventType() == blpapi.Event.TIMEOUT:
+                raise RuntimeError("Timeout, increase BCon.timeout attribute")
         return data
 
     @staticmethod
@@ -332,11 +445,9 @@ class BCon(object):
     def ref_hist(self, tickers, flds, dates, ovrds=[],
                  date_field="REFERENCE_DATE"):
         """
-        Get tickers and fields, periodically override date_field to create
-        a time series. Return pandas dataframe with column MultiIndex
-        of tickers and fields if multiple fields given, Index otherwise.
-        If single field is given DataFrame is ordered same as tickers,
-        otherwise MultiIndex is sorted
+        Make iterative calls to ref() and create a long dataframe with columns
+        [date, ticker, field, value] where each date corresponds to overriding
+        a historical data override field.
 
         Parameters
         ----------
@@ -353,18 +464,90 @@ class BCon(object):
         date_field: str
             Field to iteratively override for requesting historical data,
             e.g. REFERENCE_DATE, CURVE_DATE, etc.
+
+        Example
+        -------
+        >>> import pdblp
+        >>> con = pdblp.BCon()
+        >>> con.start()
+        >>> dates = ["20160625", "20160626"]
+        >>> con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", dates)
+
         """
         # correlationIDs should be unique to a session so rather than
         # managing unique IDs for the duration of the session just restart
         # a session for each call
-        self.restart()
+
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
             flds = [flds]
 
+        self._send_hist(tickers, flds, dates, date_field, ovrds)
+
+        data = self._parse_ref(flds, keep_corrId=True, sent_events=len(dates))
+        data = pd.DataFrame(data)
+        data.columns = ['ticker', 'field', 'value', 'date']
+        data = data.sort_values(by='date').reset_index(drop=True)
+        data = data.loc[:, ['date', 'ticker', 'field', 'value']]
+        return data
+
+    def bulkref_hist(self, tickers, flds, dates, ovrds=[],
+                     date_field="REFERENCE_DATE"):
+        """
+        Make iterative calls to bulkref() and create a long dataframe with
+        columns [date, ticker, field, name, value, position] where each date
+        corresponds to overriding a historical data override field.
+
+        Parameters
+        ----------
+        tickers: {list, string}
+            String or list of strings corresponding to tickers
+        flds: {list, string}
+            String or list of strings corresponding to FLDS
+        dates: list
+            list of date strings in the format YYYYmmdd
+        ovrds: list of tuples
+            List of tuples where each tuple corresponds to the override
+            field and value. This should not include the date_field which will
+            be iteratively overridden
+        date_field: str
+            Field to iteratively override for requesting historical data,
+            e.g. REFERENCE_DATE, CURVE_DATE, etc.
+
+        Example
+        -------
+        >>> import pdblp
+        >>> con = pdblp.BCon()
+        >>> con.start()
+        >>> dates = ["20160625", "20160626"]
+        >>> con.bulkref_hist("BVIS0587 Index", "CURVE_TENOR_RATES", dates,
+        ...                  date_field="CURVE_DATE")
+
+        """
+        # correlationIDs should be unique to a session so rather than
+        # managing unique IDs for the duration of the session just restart
+        # a session for each call
+
+        if type(tickers) is not list:
+            tickers = [tickers]
+        if type(flds) is not list:
+            flds = [flds]
+        self._send_hist(tickers, flds, dates, date_field, ovrds)
+        data = self._parse_bulkref(flds, keep_corrId=True,
+                                   sent_events=len(dates))
+        data = pd.DataFrame(data)
+        data.columns = ['ticker', 'field', 'name', 'value', 'position', 'date']
+        data = data.sort_values(by=['date', 'position']).reset_index(drop=True)
+        data = data.loc[:, ['date', 'ticker', 'field', 'name',
+                            'value', 'position']]
+        return data
+
+    def _send_hist(self, tickers, flds, dates, date_field, ovrds):
+        self.restart()
+        setvals = []
         request = self._create_req("ReferenceDataRequest", tickers, flds,
-                                   ovrds, [])
+                                   ovrds, setvals)
 
         overrides = request.getElement("overrides")
         if len(dates) == 0:
@@ -378,14 +561,6 @@ class BCon(object):
             cid = blpapi.CorrelationId(dt)
             logging.debug("Sending Request:\n %s" % request)
             self.session.sendRequest(request, correlationId=cid)
-
-        data = self._parse_ref(flds, keep_corrId=True, sent_events=len(dates))
-        data = pd.DataFrame(data)
-        data.columns = ['ticker', 'field', 'value', 'date']
-        data = data.sort_values(by='date')
-        data = data.reset_index(drop=True)
-        data = data.loc[:, ['date', 'field', 'ticker', 'value']]
-        return data
 
     def bdib(self, ticker, start_datetime, end_datetime, event_type, interval,
              elms=[]):

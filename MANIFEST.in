@@ -1,6 +1,7 @@
 include README.md
 include LICENSE
 include requirements.txt
+include pdblp/tests/data/*.csv
 
 graft doc
 prune doc/_build

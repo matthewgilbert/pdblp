@@ -1,0 +1,89 @@
+date,ticker,field,name,value,position
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,BON7,0
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.56,0
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,C N7,1
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,7.72,1
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,CLN17,2
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,6.6,2
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,COU7,3
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,7.31,3
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,CTN7,4
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,1.54,4
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,GCQ7,5
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,12.25,5
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,HGN7,6
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,7.77,6
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,HON17,7
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.52,7
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,KCN7,8
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.24,8
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,KWN7,9
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,1.2,9
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LAN7,10
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,5.21,10
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LCQ7,11
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,4.22,11
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LHN7,12
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.7,12
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LNN7,13
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.3,13
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LXN7,14
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.74,14
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,NGN17,15
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,7.76,15
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,S N7,16
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,5.45,16
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SBN17,17
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.5,17
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SIN7,18
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,4.41,18
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SMN7,19
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.82,19
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,W N7,20
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.42,20
+20170530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,XBN17,21
+20170530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.75,21
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,BON8,0
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.44,0
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,C N8,1
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,6.55,1
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,CLN8,2
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,7.75,2
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,COU8,3
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,8.38,3
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,CTN8,4
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,1.64,4
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,GCQ8,5
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,11.25,5
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,HGN8,6
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,6.48,6
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,HON8,7
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.81,7
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,KCN8,8
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.33,8
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,KWN8,9
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,1.54,9
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LAN18,10
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,4.46,10
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LCQ8,11
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.6,11
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LHN8,12
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.22,12
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LNN8,13
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.17,13
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LXN8,14
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.75,14
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,NGN18,15
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,8.03,15
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,S N8,16
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,5.99,16
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SBN8,17
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,2.82,17
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SIN8,18
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.35,18
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SMN8,19
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.39,19
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,W N8,20
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,3.76,20
+20180530,BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,XBN8,21
+20180530,BCOM Index,INDX_MWEIGHT,Percentage Weight,4.3,21

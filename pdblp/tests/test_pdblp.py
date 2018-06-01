@@ -2,6 +2,7 @@ import unittest
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
 from pdblp import pdblp
+import os
 
 
 IP_PORT = 8194
@@ -12,9 +13,63 @@ class TestBCon(unittest.TestCase):
     def setUp(self):
         self.con = pdblp.BCon(port=IP_PORT, timeout=5000)
         self.con.start()
+        cdir = os.path.dirname(__file__)
+        self.path = os.path.join(cdir, 'data/')
 
     def tearDown(self):
         pass
+
+    def pivot_and_assert(self, df, df_exp, with_date=False):
+        # as shown below, since the raw data returned from bbg is an array
+        # with unknown ordering, there is no guruantee that the `position` will
+        # always be the same so pivoting prior to comparison is necessary
+        #
+        # fieldData = {
+        #     INDX_MWEIGHT[] = {
+        #         INDX_MWEIGHT = {
+        #             Member Ticker and Exchange Code = "BON8"
+        #             Percentage Weight = 2.410000
+        #         }
+        #         INDX_MWEIGHT = {
+        #             Member Ticker and Exchange Code = "C N8"
+        #             Percentage Weight = 6.560000
+        #         }
+        #         INDX_MWEIGHT = {
+        #             Member Ticker and Exchange Code = "CLN8"
+        #             Percentage Weight = 7.620000
+        #         }
+        #     }
+        # }
+        name_cols = list(df_exp.name.unique())
+        sort_cols = list(df_exp.name.unique())
+        index_cols = ["name", "position", "field", "ticker"]
+        if with_date:
+            sort_cols.append("date")
+            index_cols.append("date")
+
+        df = (df.set_index(index_cols).loc[:, "value"]
+              .unstack(level=0).reset_index().drop(columns="position")
+              .sort_values(by=sort_cols, axis=0))
+        df_exp = (df_exp.set_index(index_cols).loc[:, "value"]
+                  .unstack(level=0).reset_index().drop(columns="position")
+                  .sort_values(by=sort_cols, axis=0))
+        # deal with mixed types resulting in str from csv read
+        for name in name_cols:
+            try:
+                df_exp.loc[:, name] = df_exp.loc[:, name].astype(float)
+            except ValueError:
+                pass
+        for name in name_cols:
+            try:
+                df.loc[:, name] = df.loc[:, name].astype(float)
+            except ValueError:
+                pass
+        if with_date:
+            df.loc[:, "date"] = pd.to_datetime(df.loc[:, "date"],
+                                               format="%Y%m%d")
+            df_exp.loc[:, "date"] = pd.to_datetime(df_exp.loc[:, "date"],
+                                                   format="%Y%m%d")
+        assert_frame_equal(df, df_exp)
 
     def test_bdh_one_ticker_one_field_pivoted(self):
         df = self.con.bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
@@ -93,6 +148,8 @@ class TestBCon(unittest.TestCase):
         df_expect = pd.DataFrame(data=data, index=idx, columns=cols)
         assert_frame_equal(df, df_expect)
 
+    # REF TESTS
+
     def test_ref_one_ticker_one_field(self):
         df = self.con.ref('AUD Curncy', 'NAME')
         df_expect = pd.DataFrame(
@@ -100,22 +157,6 @@ class TestBCon(unittest.TestCase):
             data=[["AUD Curncy", "NAME", "Australian Dollar Spot"]]
         )
         assert_frame_equal(df, df_expect)
-
-    def test_ref_one_ticker_one_field_many_output(self):
-        df = self.con.ref('CL1 Comdty', 'FUT_CHAIN')
-        # unknown / changing data returned so just assert right type
-        assert isinstance(df, pd.DataFrame)
-
-    def test_ref_two_ticker_one_field_many_output(self):
-        df = self.con.ref(['CL1 Comdty', 'CO1 Comdty'], 'FUT_CHAIN')
-        # unknown / changing data returned so just assert right type
-        assert isinstance(df, pd.DataFrame)
-
-    def test_ref_two_ticker_two_field_many_output(self):
-        df = self.con.ref(['CL1 Comdty', 'CO1 Comdty'],
-                          ['FUT_CHAIN', 'FUT_CUR_GEN_TICKER'])
-        # unknown / changing data returned so just assert right type
-        assert isinstance(df, pd.DataFrame)
 
     def test_ref_one_ticker_one_field_override(self):
         df = self.con.ref('AUD Curncy', 'SETTLE_DT',
@@ -128,24 +169,28 @@ class TestBCon(unittest.TestCase):
         assert_frame_equal(df, df_expect)
 
     def test_ref_invalid_field(self):
-
-        def run_query():
-            self.con.ref(["EI862261 Corp"], ["not_a_field"])
-
-        self.assertRaises(ValueError, run_query)
+        self.assertRaises(ValueError, self.con.ref,
+                          "EI862261 Corp", "not_a_field")
 
     def test_ref_not_applicable_field(self):
-        df = self.con.ref(["EI862261 Corp"], ["MATURITY"])
-        df_expect = pd.DataFrame([["EI862261 Corp", "MATURITY", pd.np.NaN]],
-                                 columns=['ticker', 'field', 'value'])
+        # test both cases described in
+        # https://github.com/matthewgilbert/pdblp/issues/6
+        df = self.con.ref("BCOM Index", ["INDX_GWEIGHT"])
+        df_expect = pd.DataFrame(
+            [["BCOM Index", "INDX_GWEIGHT", pd.np.NaN]],
+            columns=['ticker', 'field', 'value']
+        )
+        assert_frame_equal(df, df_expect)
+
+        df = self.con.ref("BCOM Index", ["INDX_MWEIGHT_PX2"])
+        df_expect = pd.DataFrame(
+            [["BCOM Index", "INDX_MWEIGHT_PX2", pd.np.NaN]],
+            columns=['ticker', 'field', 'value']
+        )
         assert_frame_equal(df, df_expect)
 
     def test_ref_invalid_security(self):
-
-        def run_query():
-            self.con.ref(["NOT_A_TICKER"], ["MATURITY"])
-
-        self.assertRaises(ValueError, run_query)
+        self.assertRaises(ValueError, self.con.ref, "NOT_A_TICKER", "MATURITY")
 
     def test_ref_applicable_with_not_applicable_field(self):
         df = self.con.ref("BVIS0587 Index", ["MATURITY", "NAME"])
@@ -155,25 +200,48 @@ class TestBCon(unittest.TestCase):
             columns=["ticker", "field", "value"])
         assert_frame_equal(df, df_exp)
 
-    def test_ref_nested_array_field_data(self):
-        # check only that "field" is a concatenation of top and nested
-        # field values
-        df = self.con.ref("BVIS0587 Index", ["CURVE_TENOR_RATES"])
-        p1 = "CURVE_TENOR_RATES:"
-        self.assertTrue((df.field == p1 + "Tenor").any())
-        self.assertTrue((df.field == p1 + "Tenor Ticker").any())
-        self.assertTrue((df.field == p1 + "Ask Yield").any())
-        self.assertTrue((df.field == p1 + "Mid Yield").any())
-        self.assertTrue((df.field == p1 + "Bid Yield").any())
-        self.assertTrue((df.field == p1 + "Last Update").any())
+    def test_ref_mixed_data_error(self):
+        # calling ref which returns singleton and array data throws error
+        self.assertRaises(ValueError, self.con.ref, 'CL1 Comdty', 'FUT_CHAIN')
+
+    # BULKREF TESTS
+
+    def test_bulkref_one_ticker_one_field(self):
+        df = self.con.bulkref('BCOM Index', 'INDX_MWEIGHT',
+                              ovrds=[("END_DATE_OVERRIDE", "20180530")])
+        df_expected = pd.read_csv(
+            os.path.join(self.path, "bulkref_20180530.csv")
+        )
+        self.pivot_and_assert(df, df_expected)
+
+    def test_bulkref_two_ticker_one_field(self):
+        df = self.con.bulkref(['BCOM Index', 'OEX Index'], 'INDX_MWEIGHT',
+                              ovrds=[("END_DATE_OVERRIDE", "20180530")])
+        df_expected = pd.read_csv(
+            os.path.join(self.path, "bulkref_two_fields_20180530.csv")
+        )
+        self.pivot_and_assert(df, df_expected)
+
+    def test_bulkref_singleton_error(self):
+        # calling bulkref which returns singleton throws error
+        self.assertRaises(ValueError, self.con.bulkref, 'CL1 Comdty',
+                          'FUT_CUR_GEN_TICKER')
+
+    def test_null_scalar_sub_element(self):
+        # related to https://github.com/matthewgilbert/pdblp/issues/32
+        # smoke test to check parse correctly
+        ovrds = [("DVD_START_DT", "19860101"), ("DVD_END_DT", "19870101")]
+        self.con.bulkref("101 HK EQUITY", "DVD_HIST", ovrds=ovrds)
+
+    # REF_HIST TESTS
 
     def test_hist_ref_one_ticker_one_field_numeric(self):
         dates = ["20160104", "20160105"]
         df = self.con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", dates)
         df_expect = pd.DataFrame(
             {"date": dates,
-             "field": ["DAYS_TO_MTY", "DAYS_TO_MTY"],
              "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
+             "field": ["DAYS_TO_MTY", "DAYS_TO_MTY"],
              "value": [33, 32]}
         )
         assert_frame_equal(df, df_expect)
@@ -183,24 +251,29 @@ class TestBCon(unittest.TestCase):
         df = self.con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", dates)
         df_expect = pd.DataFrame(
             {"date": dates,
-             "field": ["SETTLE_DT", "SETTLE_DT"],
              "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
+             "field": ["SETTLE_DT", "SETTLE_DT"],
              "value": 2 * [pd.datetime(2016, 2, 8).date()]}
         )
         assert_frame_equal(df, df_expect)
 
-    def test_hist_ref_with_alternative_reference_field(self):
-        dates = ["20160625"]
-        df = self.con.ref_hist("BVIS0587 Index", "CURVE_TENOR_RATES", dates,
-                               date_field="CURVE_DATE")
-        # simply check that the response was sent off and correctly received
-        self.assertIsInstance(df, pd.DataFrame)
+    # BULKREF_HIST TESTS
 
-    def test_null_scalar_sub_element(self):
-        # related to https://github.com/matthewgilbert/pdblp/issues/32
-        ovrds = [("DVD_START_DT", "19860101"), ("DVD_END_DT", "19870101")]
-        df = self.con.ref("101 HK EQUITY", "DVD_HIST", ovrds=ovrds)
-        self.assertIsInstance(df, pd.DataFrame)
+    def test_bulkref_hist_one_field(self):
+        dates = ["20170530", "20180530"]
+        df = self.con.bulkref_hist('BCOM Index', 'INDX_MWEIGHT', dates=dates,
+                                   date_field='END_DATE_OVERRIDE')
+        df_expected = pd.read_csv(
+            os.path.join(self.path, "bulkref_20170530_20180530.csv")
+        )
+        self.pivot_and_assert(df, df_expected, with_date=True)
+
+    def test_bulkhist_ref_with_alternative_reference_field(self):
+        # smoke test to  check that the response was sent off and correctly
+        # received
+        dates = ["20160625"]
+        self.con.bulkref_hist("BVIS0587 Index", "CURVE_TENOR_RATES", dates,
+                              date_field="CURVE_DATE")
 
     def test_context_manager(self):
         with pdblp.bopen(port=IP_PORT) as bb:
@@ -217,11 +290,7 @@ class TestBCon(unittest.TestCase):
 
     def test_connection_error(self):
         con = pdblp.BCon(port=1111)
-
-        def try_con():
-            con.start()
-
-        self.assertRaises(ConnectionError, try_con)
+        self.assertRaises(ConnectionError, con.start)
 
     def test_bsrch(self):
         df = self.con.bsrch("COMDTY:VESSEL").head()
