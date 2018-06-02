@@ -53,22 +53,29 @@ conda install libgcc
 ```
 
 ## Documentation
-Once `pdblp` has been installed, documentation can be built using
+
+The documentation can be viewed at https://matthewgilbert.github.io/pdblp/
+
+### Bloomberg Documentation
+
+For general documentation on the Bloomberg API check out the Developer's Guide.
+For documentation on relevant Bloomberg fields for accessing data, check out
+the Reference Guide: Services and Schemas. To access these, from a
+Bloomberg Terminal go `WAPI <GO>` -> `API Developer's Guide`.
+
+### Building the documentation
+
+The documentation relies on [Sphinx](http://www.sphinx-doc.org/en/master/).
+Building the documentation can be done by setting up a conda environment using
+`conda create --name pdblp_doc --file doc-environment.yml`, sourcing this
+environment and then installing the relevant version of `pdblp`. Documentation
+can then be built using
 
 ```
 cd doc
 make html
 ```
 
-and then viewed in ./doc/_build. Before building this ensure that you are
+and viewed in ./doc/_build. Before building this ensure that you are
 logged into a Bloomberg terminal as this is required for building many of the
 examples.
-
-An online version of the documentation can be view at https://matthewgilbert.github.io/pdblp/
-
-## Bloomberg Documentation
-
-For general documentation on the Bloomberg API check out the Developer's Guide.
-For documentation on relevant Bloomberg fields for accessing data, check out
-the Reference Guide: Services and Schemas. To access these, from a
-Bloomberg Terminal go `WAPI <GO>` -> `API Developer's Guide`.
