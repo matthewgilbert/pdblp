@@ -22,3 +22,10 @@ instantiation
 
 - Fix bug accessing null blpapi.element.Element in ref(), see issue #32
 - Raise a ValueError for bad inputs to bdh(), see issue #33
+
+# pdblp 0.1.5
+
+- Seperate ref() into bulkref() and ref(), see issue #35
+- Update tutorial docs to reflect new functions
+- Update Sphinx build process to use sphinx 1.7.5 and provide environment
+file for building docs
