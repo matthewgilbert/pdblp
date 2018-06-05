@@ -1,7 +1,3 @@
-# pdblp 0.1.2
-
-- exposed timeout parameter through BCon() instantiation
-
 # pdblp 0.1.1
 
 - fixed bug where list of parameters persisted over multiple calls
@@ -19,7 +15,8 @@ instead of just REFERENCE_DATE, e.g. CURVE_DATE
 
 # pdblp 0.1.3
 
-- expose blpapi.Event.TIMEOUT to user
+- expose blpapi.Event.TIMEOUT to user through timeout parameter in BCon()
+instantiation
 
 # pdblp 0.1.4
 
