@@ -99,6 +99,7 @@ class BCon(object):
         # Obtain previously opened service
         self.exrService = self.session.getService("//blp/exrsvc")
         self.session.nextEvent()
+        return self
 
     def restart(self):
         """
