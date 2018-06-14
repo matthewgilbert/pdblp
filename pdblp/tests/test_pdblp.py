@@ -209,17 +209,17 @@ class TestBCon(unittest.TestCase):
 
     def test_bulkref_one_ticker_one_field(self):
         df = self.con.bulkref('BCOM Index', 'INDX_MWEIGHT',
-                              ovrds=[("END_DATE_OVERRIDE", "20180530")])
+                              ovrds=[("END_DATE_OVERRIDE", "20150530")])
         df_expected = pd.read_csv(
-            os.path.join(self.path, "bulkref_20180530.csv")
+            os.path.join(self.path, "bulkref_20150530.csv")
         )
         self.pivot_and_assert(df, df_expected)
 
     def test_bulkref_two_ticker_one_field(self):
         df = self.con.bulkref(['BCOM Index', 'OEX Index'], 'INDX_MWEIGHT',
-                              ovrds=[("END_DATE_OVERRIDE", "20180530")])
+                              ovrds=[("END_DATE_OVERRIDE", "20150530")])
         df_expected = pd.read_csv(
-            os.path.join(self.path, "bulkref_two_fields_20180530.csv")
+            os.path.join(self.path, "bulkref_two_fields_20150530.csv")
         )
         self.pivot_and_assert(df, df_expected)
 
@@ -283,11 +283,11 @@ class TestBCon(unittest.TestCase):
     # BULKREF_HIST TESTS
 
     def test_bulkref_hist_one_field(self):
-        dates = ["20170530", "20180530"]
+        dates = ["20150530", "20160530"]
         df = self.con.bulkref_hist('BCOM Index', 'INDX_MWEIGHT', dates=dates,
                                    date_field='END_DATE_OVERRIDE')
         df_expected = pd.read_csv(
-            os.path.join(self.path, "bulkref_20170530_20180530.csv")
+            os.path.join(self.path, "bulkref_20150530_20160530.csv")
         )
         self.pivot_and_assert(df, df_expected, with_date=True)
 

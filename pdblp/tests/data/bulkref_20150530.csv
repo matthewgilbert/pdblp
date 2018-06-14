@@ -1,0 +1,45 @@
+ticker,field,name,value,position
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,BON15,0
+BCOM Index,INDX_MWEIGHT,Percentage Weight,2.81,0
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,C N15,1
+BCOM Index,INDX_MWEIGHT,Percentage Weight,6.38,1
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,CLN15,2
+BCOM Index,INDX_MWEIGHT,Percentage Weight,9.57,2
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,COU15,3
+BCOM Index,INDX_MWEIGHT,Percentage Weight,9.08,3
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,CTN15,4
+BCOM Index,INDX_MWEIGHT,Percentage Weight,1.6,4
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,GCQ15,5
+BCOM Index,INDX_MWEIGHT,Percentage Weight,11.62,5
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,HGN15,6
+BCOM Index,INDX_MWEIGHT,Percentage Weight,7.4,6
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,HON15,7
+BCOM Index,INDX_MWEIGHT,Percentage Weight,4.35,7
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,KCN15,8
+BCOM Index,INDX_MWEIGHT,Percentage Weight,1.58,8
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,KWN15,9
+BCOM Index,INDX_MWEIGHT,Percentage Weight,0.94,9
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LAN15,10
+BCOM Index,INDX_MWEIGHT,Percentage Weight,4.4,10
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LCQ15,11
+BCOM Index,INDX_MWEIGHT,Percentage Weight,3.01,11
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LHN15,12
+BCOM Index,INDX_MWEIGHT,Percentage Weight,2.03,12
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LNN15,13
+BCOM Index,INDX_MWEIGHT,Percentage Weight,1.71,13
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,LXN15,14
+BCOM Index,INDX_MWEIGHT,Percentage Weight,2.45,14
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,NGN15,15
+BCOM Index,INDX_MWEIGHT,Percentage Weight,8.01,15
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,S N15,16
+BCOM Index,INDX_MWEIGHT,Percentage Weight,4.99,16
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SBN15,17
+BCOM Index,INDX_MWEIGHT,Percentage Weight,3.22,17
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SIN15,18
+BCOM Index,INDX_MWEIGHT,Percentage Weight,4.29,18
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,SMN15,19
+BCOM Index,INDX_MWEIGHT,Percentage Weight,2.35,19
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,W N15,20
+BCOM Index,INDX_MWEIGHT,Percentage Weight,2.72,20
+BCOM Index,INDX_MWEIGHT,Member Ticker and Exchange Code,XBN15,21
+BCOM Index,INDX_MWEIGHT,Percentage Weight,5.5,21
