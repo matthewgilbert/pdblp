@@ -228,8 +228,8 @@ class TestBCon(unittest.TestCase):
         self.assertRaises(ValueError, self.con.bulkref, 'CL1 Comdty',
                           'FUT_CUR_GEN_TICKER')
 
-    def test_null_scalar_sub_element(self):
-        # related to https://github.com/matthewgilbert/pdblp/issues/32
+    def test_bulkref_null_scalar_sub_element(self):
+        # related to https://github.com/matthewgilbert/pdblp/issues/32#issuecomment-385555289  # NOQA
         # smoke test to check parse correctly
         ovrds = [("DVD_START_DT", "19860101"), ("DVD_END_DT", "19870101")]
         self.con.bulkref("101 HK EQUITY", "DVD_HIST", ovrds=ovrds)
