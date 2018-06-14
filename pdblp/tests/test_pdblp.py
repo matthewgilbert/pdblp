@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+import numpy as np
 from pandas.util.testing import assert_frame_equal
 from pdblp import pdblp
 import os
@@ -92,7 +93,7 @@ class TestBCon(unittest.TestCase):
                 [205.42, 205.85]]
         df_expect = pd.DataFrame(data=data, index=idx).transpose()
         df_expect.loc[:, "date"] = pd.to_datetime(df_expect.loc[:, "date"])
-        df_expect.loc[:, "value"] = pd.np.float64(df_expect.loc[:, "value"])
+        df_expect.loc[:, "value"] = np.float64(df_expect.loc[:, "value"])
         assert_frame_equal(df, df_expect)
 
     def test_bdh_one_ticker_two_field_pivoted(self):
@@ -107,7 +108,7 @@ class TestBCon(unittest.TestCase):
             columns=midx,
             data=[[205.42, 202621332], [205.85, 182925106]]
         )
-        df_expect = df_expect.astype(pd.np.float64)
+        df_expect = df_expect.astype(np.float64)
         df_expect.index.names = ["date"]
         assert_frame_equal(df, df_expect)
 
@@ -122,7 +123,7 @@ class TestBCon(unittest.TestCase):
                 [205.42, 202621332, 205.85, 182925106]]
         df_expect = pd.DataFrame(data=data, index=idx).transpose()
         df_expect.loc[:, "date"] = pd.to_datetime(df_expect.loc[:, "date"])
-        df_expect.loc[:, "value"] = pd.np.float64(df_expect.loc[:, "value"])
+        df_expect.loc[:, "value"] = np.float64(df_expect.loc[:, "value"])
         assert_frame_equal(df, df_expect)
 
     def test_bdh_value_errors(self):
@@ -177,14 +178,14 @@ class TestBCon(unittest.TestCase):
         # https://github.com/matthewgilbert/pdblp/issues/6
         df = self.con.ref("BCOM Index", ["INDX_GWEIGHT"])
         df_expect = pd.DataFrame(
-            [["BCOM Index", "INDX_GWEIGHT", pd.np.NaN]],
+            [["BCOM Index", "INDX_GWEIGHT", np.NaN]],
             columns=['ticker', 'field', 'value']
         )
         assert_frame_equal(df, df_expect)
 
         df = self.con.ref("BCOM Index", ["INDX_MWEIGHT_PX2"])
         df_expect = pd.DataFrame(
-            [["BCOM Index", "INDX_MWEIGHT_PX2", pd.np.NaN]],
+            [["BCOM Index", "INDX_MWEIGHT_PX2", np.NaN]],
             columns=['ticker', 'field', 'value']
         )
         assert_frame_equal(df, df_expect)
@@ -195,7 +196,7 @@ class TestBCon(unittest.TestCase):
     def test_ref_applicable_with_not_applicable_field(self):
         df = self.con.ref("BVIS0587 Index", ["MATURITY", "NAME"])
         df_exp = pd.DataFrame(
-            [["BVIS0587 Index", "MATURITY", pd.np.NaN],
+            [["BVIS0587 Index", "MATURITY", np.NaN],
              ["BVIS0587 Index", "NAME", "CAD Canada Govt BVAL Curve"]],
             columns=["ticker", "field", "value"])
         assert_frame_equal(df, df_exp)
