@@ -1,6 +1,7 @@
 import blpapi
 import logging
 import pandas as pd
+import numpy as np
 import contextlib
 from collections import defaultdict
 from pandas import DataFrame
@@ -301,7 +302,7 @@ class BCon(object):
                         # that this is a not applicable field, thus set NaN
                         # see https://github.com/matthewgilbert/pdblp/issues/13
                         if not fieldData.hasElement(fld):
-                            dataj = [ticker, fld, pd.np.NaN]
+                            dataj = [ticker, fld, np.NaN]
                             dataj.extend(corrId)
                             data.append(dataj)
                         else:
@@ -401,22 +402,27 @@ class BCon(object):
                     fieldData = secDataElm.getElement('fieldData')
                     for j in range(len(flds)):
                         fld = flds[j]
-                        # fail coherently instead of parsing downstream
-                        if not fieldData.getElement(fld).isArray():
-                            raise ValueError("Cannot parse field '{0}' which "
-                                             "is not bulk reference data"
-                                             .format(fld))
-                        arrayValues = fieldData.getElement(fld).values()
-                        for i, field in enumerate(arrayValues):
-                            for elm in field.elements():
-                                value_name = str(elm.name())
-                                if not elm.isNull():
-                                    val = elm.getValue()
-                                else:
-                                    val = pd.np.NaN
-                                dataj = [ticker, fld, value_name, val, i]
-                                dataj.extend(corrId)
-                                data.append(dataj)
+                        if fieldData.hasElement(fld):
+                            # fail coherently instead of parsing downstream
+                            if not fieldData.getElement(fld).isArray():
+                                raise ValueError("Cannot parse field '{0}' "
+                                                 "which is not bulk reference "
+                                                 "data".format(fld))
+                            arrayValues = fieldData.getElement(fld).values()
+                            for i, field in enumerate(arrayValues):
+                                for elm in field.elements():
+                                    value_name = str(elm.name())
+                                    if not elm.isNull():
+                                        val = elm.getValue()
+                                    else:
+                                        val = np.NaN
+                                    dataj = [ticker, fld, value_name, val, i]
+                                    dataj.extend(corrId)
+                                    data.append(dataj)
+                        else:  # field is empty or NOT_APPLICABLE_TO_REF_DATA
+                            dataj = [ticker, fld, np.NaN, np.NaN, np.NaN]
+                            dataj.extend(corrId)
+                            data.append(dataj)
 
             if ev.eventType() == blpapi.Event.RESPONSE:
                 # Response completely received, so we could exit

@@ -234,6 +234,28 @@ class TestBCon(unittest.TestCase):
         ovrds = [("DVD_START_DT", "19860101"), ("DVD_END_DT", "19870101")]
         self.con.bulkref("101 HK EQUITY", "DVD_HIST", ovrds=ovrds)
 
+    def test_bulkref_empty_field(self):
+        df = self.con.bulkref(["88428LAA0 Corp"], ["INDEX_LIST"])
+        df_exp = pd.DataFrame(
+            [["88428LAA0 Corp", "INDEX_LIST", np.NaN, np.NaN, np.NaN]],
+            columns=["ticker", "field", "name", "value", "position"]
+        )
+        assert_frame_equal(df, df_exp)
+
+        # empty with non empty smoke test
+        self.con.bulkref(['88428LAA0 Corp'], ['INDEX_LIST', 'USE_OF_PROCEEDS'])
+
+    def test_bulkref_not_applicable_field(self):
+        df = self.con.bulkref("CL1 Comdty", ["FUT_DLVRBLE_BNDS_ISINS"])
+        df_exp = pd.DataFrame(
+            [["CL1 Comdty", "FUT_DLVRBLE_BNDS_ISINS", np.NaN, np.NaN, np.NaN]],
+            columns=["ticker", "field", "name", "value", "position"]
+        )
+        assert_frame_equal(df, df_exp)
+
+        # with an applicable field smoke test
+        self.con.bulkref('CL1 Comdty', ['OPT_CHAIN', 'FUT_DLVRBLE_BNDS_ISINS'])
+
     # REF_HIST TESTS
 
     def test_hist_ref_one_ticker_one_field_numeric(self):
