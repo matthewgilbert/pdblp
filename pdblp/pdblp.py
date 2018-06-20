@@ -7,6 +7,26 @@ from collections import defaultdict
 from pandas import DataFrame
 
 
+def _get_logger(debug):
+    logger = logging.getLogger(__name__)
+    if (logger.parent is not None) and logger.parent.hasHandlers():
+        if debug:
+            logger.warning("'pdblp.BCon.debug=True' is ignored when user "
+                           "specifies logging event handlers")
+    else:
+        if not logger.handlers:
+            formatter = logging.Formatter('%(name)s:%(levelname)s:%(message)s')
+            sh = logging.StreamHandler()
+            sh.setFormatter(formatter)
+            logger.addHandler(sh)
+        if debug:
+            logger.setLevel(logging.INFO)
+        else:
+            logger.setLevel(logging.WARNING)
+
+    return logger
+
+
 @contextlib.contextmanager
 def bopen(**kwargs):
     """
@@ -68,26 +88,20 @@ class BCon(object):
         Set whether logging is True or False
         """
         self._debug = value
-        root = logging.getLogger()
-        if self._debug:
-            # log requests and responses
-            root.setLevel(logging.DEBUG)
-        else:
-            # log only failed connections
-            root.setLevel(logging.INFO)
 
     def start(self):
         """
         start connection and init service for refData
         """
         # Start a Session
+        logger = _get_logger(self.debug)
         if not self.session.start():
-            logging.info("Failed to start session.")
+            logger.warning("Failed to start session.")
             raise ConnectionError("Could not start a blpapi.session")
         self.session.nextEvent()
         # Open service to get historical data from
         if not self.session.openService("//blp/refdata"):
-            logging.info("Failed to open //blp/refdata")
+            logger.warning("Failed to open //blp/refdata")
             raise ConnectionError("Could not open a //blp/refdata service")
         self.session.nextEvent()
         # Obtain previously opened service
@@ -95,7 +109,7 @@ class BCon(object):
         self.session.nextEvent()
         # Open BSearch Service
         if not self.session.openService("//blp/exrsvc"):
-            logging.error("Failed to open //blp/exrsvc")
+            logger.warning("Failed to open //blp/exrsvc")
             raise ConnectionError("Could not open a //blp/exrsvc service")
         # Obtain previously opened service
         self.exrService = self.session.getService("//blp/exrsvc")
@@ -178,7 +192,7 @@ class BCon(object):
 
     def _bdh_list(self, tickers, flds, start_date, end_date, elms,
                   ovrds):
-
+        logger = _get_logger(self.debug)
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
@@ -190,8 +204,7 @@ class BCon(object):
 
         request = self._create_req("HistoricalDataRequest", tickers, flds,
                                    ovrds, setvals)
-
-        logging.debug("Sending Request:\n %s" % request)
+        logger.info("Sending Request:\n %s" % request)
         # Send the request
         self.session.sendRequest(request)
         data = []
@@ -199,7 +212,7 @@ class BCon(object):
         while(True):
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
+                logger.info("Message Received:\n %s" % msg)
                 has_security_error = (msg.getElement('securityData')
                                       .hasElement('securityError'))
                 has_field_exception = (msg.getElement('securityData')
@@ -256,13 +269,14 @@ class BCon(object):
                 FUT_GEN_MONTH = "FGHJKMNQUVXZ"
         }
         """
+        logger = _get_logger(self.debug)
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
             flds = [flds]
         request = self._create_req("ReferenceDataRequest", tickers, flds,
                                    ovrds, [])
-        logging.debug("Sending Request:\n %s" % request)
+        logger.info("Sending Request:\n %s" % request)
         self.session.sendRequest(request)
         data = self._parse_ref(flds)
         data = DataFrame(data)
@@ -270,12 +284,13 @@ class BCon(object):
         return data
 
     def _parse_ref(self, flds, keep_corrId=False, sent_events=1):
+        logger = _get_logger(self.debug)
         data = []
         # Process received events
         while(True):
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
+                logger.info("Message Received:\n %s" % msg)
                 if keep_corrId:
                     corrId = [msg.correlationIds()[0].value()]
                 else:
@@ -368,6 +383,7 @@ class BCon(object):
             }
         }
         """
+        logger = _get_logger(self.debug)
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
@@ -375,7 +391,7 @@ class BCon(object):
         setvals = []
         request = self._create_req("ReferenceDataRequest", tickers, flds,
                                    ovrds, setvals)
-        logging.debug("Sending Request:\n %s" % request)
+        logger.info("Sending Request:\n %s" % request)
         self.session.sendRequest(request)
         data = self._parse_bulkref(flds)
         data = DataFrame(data)
@@ -383,12 +399,13 @@ class BCon(object):
         return data
 
     def _parse_bulkref(self, flds, keep_corrId=False, sent_events=1):
+        logger = _get_logger(self.debug)
         data = []
         # Process received events
         while(True):
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
+                logger.info("Message Received:\n %s" % msg)
                 if keep_corrId:
                     corrId = [msg.correlationIds()[0].value()]
                 else:
@@ -548,6 +565,7 @@ class BCon(object):
         return data
 
     def _send_hist(self, tickers, flds, dates, date_field, ovrds):
+        logger = _get_logger(self.debug)
         self.restart()
         setvals = []
         request = self._create_req("ReferenceDataRequest", tickers, flds,
@@ -563,7 +581,7 @@ class BCon(object):
             # CorrelationID used to keep track of which response coincides with
             # which request
             cid = blpapi.CorrelationId(dt)
-            logging.debug("Sending Request:\n %s" % request)
+            logger.info("Sending Request:\n %s" % request)
             self.session.sendRequest(request, correlationId=cid)
 
     def bdib(self, ticker, start_datetime, end_datetime, event_type, interval,
@@ -591,6 +609,7 @@ class BCon(object):
             'Services & schemas reference guide' for more info on these values
         """
         # flush event queue in case previous call errored out
+        logger = _get_logger(self.debug)
         while(self.session.tryNextEvent()):
             pass
 
@@ -604,7 +623,7 @@ class BCon(object):
         for name, val in elms:
             request.set(name, val)
 
-        logging.debug("Sending Request:\n %s" % request)
+        logger.info("Sending Request:\n %s" % request)
         # Send the request
         self.session.sendRequest(request)
         # defaultdict - later convert to pandas
@@ -614,7 +633,7 @@ class BCon(object):
         while(True):
             ev = self.session.nextEvent(self.timeout)
             for msg in ev:
-                logging.debug("Message Received:\n %s" % msg)
+                logger.info("Message Received:\n %s" % msg)
                 barTick = (msg.getElement('barData')
                            .getElement('barTickData'))
                 for i in range(barTick.numValues()):
@@ -648,6 +667,7 @@ class BCon(object):
         data: pandas.DataFrame
         List of bloomberg tickers from the BSRCH
         """
+        logger = _get_logger(self.debug)
         request = self.exrService.createRequest("ExcelGetGridRequest")
         request.set("Domain", domain)
         self.session.sendRequest(request)
@@ -658,7 +678,7 @@ class BCon(object):
             if event.eventType() == blpapi.Event.RESPONSE or \
                event.eventType() == blpapi.Event.PARTIAL_RESPONSE:
                 for msg in event:
-                    logging.debug(msg)
+                    logger.info(msg)
                     for v in msg.getElement("DataRecords").values():
                         for f in v.getElement("DataFields").values():
                             data.append(f.getElementAsString("StringValue"))
