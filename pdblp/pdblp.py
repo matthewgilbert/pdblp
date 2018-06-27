@@ -145,8 +145,8 @@ class BCon(object):
 
         return request
 
-    def bdh(self, tickers, flds, start_date, end_date, elms=[],
-            ovrds=[], longdata=False):
+    def bdh(self, tickers, flds, start_date, end_date, elms=None,
+            ovrds=None, longdata=False):
         """
         Get tickers and fields, return pandas Dataframe with columns as
         MultiIndex with levels "ticker" and "field" and indexed by "date".
@@ -174,6 +174,8 @@ class BCon(object):
         longdata: boolean
             Whether data should be returned in long data format or pivoted
         """
+        ovrds = [] if not ovrds else ovrds
+        elms = [] if not elms else elms
 
         elms = list(elms)
 
@@ -238,7 +240,7 @@ class BCon(object):
 
         return data
 
-    def ref(self, tickers, flds, ovrds=[]):
+    def ref(self, tickers, flds, ovrds=None):
         """
         Make a reference data request, get tickers and fields, return long
         pandas Dataframe with columns [ticker, field, value]
@@ -269,6 +271,8 @@ class BCon(object):
                 FUT_GEN_MONTH = "FGHJKMNQUVXZ"
         }
         """
+        ovrds = [] if not ovrds else ovrds
+
         logger = _get_logger(self.debug)
         if type(tickers) is not list:
             tickers = [tickers]
@@ -337,7 +341,7 @@ class BCon(object):
                 raise RuntimeError("Timeout, increase BCon.timeout attribute")
         return data
 
-    def bulkref(self, tickers, flds, ovrds=[]):
+    def bulkref(self, tickers, flds, ovrds=None):
         """
         Make a bulk reference data request, get tickers and fields, return long
         pandas Dataframe with columns [ticker, field, name, value, position].
@@ -383,6 +387,8 @@ class BCon(object):
             }
         }
         """
+        ovrds = [] if not ovrds else ovrds
+
         logger = _get_logger(self.debug)
         if type(tickers) is not list:
             tickers = [tickers]
@@ -463,7 +469,7 @@ class BCon(object):
             if category == INVALID_FIELD:
                 raise ValueError("%s: %s" % (fe.getElement("fieldId").getValue(), category))  # NOQA
 
-    def ref_hist(self, tickers, flds, dates, ovrds=[],
+    def ref_hist(self, tickers, flds, dates, ovrds=None,
                  date_field="REFERENCE_DATE"):
         """
         Make iterative calls to ref() and create a long dataframe with columns
@@ -499,6 +505,8 @@ class BCon(object):
         # managing unique IDs for the duration of the session just restart
         # a session for each call
 
+        ovrds = [] if not ovrds else ovrds
+
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
@@ -513,7 +521,7 @@ class BCon(object):
         data = data.loc[:, ['date', 'ticker', 'field', 'value']]
         return data
 
-    def bulkref_hist(self, tickers, flds, dates, ovrds=[],
+    def bulkref_hist(self, tickers, flds, dates, ovrds=None,
                      date_field="REFERENCE_DATE"):
         """
         Make iterative calls to bulkref() and create a long dataframe with
@@ -550,6 +558,8 @@ class BCon(object):
         # managing unique IDs for the duration of the session just restart
         # a session for each call
 
+        ovrds = [] if not ovrds else ovrds
+
         if type(tickers) is not list:
             tickers = [tickers]
         if type(flds) is not list:
@@ -585,7 +595,7 @@ class BCon(object):
             self.session.sendRequest(request, correlationId=cid)
 
     def bdib(self, ticker, start_datetime, end_datetime, event_type, interval,
-             elms=[]):
+             elms=None):
         """
         Get Open, High, Low, Close, Volume, and numEvents for a ticker.
         Return pandas dataframe
@@ -608,6 +618,8 @@ class BCon(object):
             to be set. Refer to the IntradayBarRequest section in the
             'Services & schemas reference guide' for more info on these values
         """
+        elms = [] if not elms else elms
+
         # flush event queue in case previous call errored out
         logger = _get_logger(self.debug)
         while(self.session.tryNextEvent()):
