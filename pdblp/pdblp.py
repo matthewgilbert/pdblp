@@ -182,8 +182,7 @@ class BCon(object):
         data = self._bdh_list(tickers, flds, start_date, end_date,
                               elms, ovrds)
 
-        df = DataFrame(data)
-        df.columns = ["date", "ticker", "field", "value"]
+        df = DataFrame(data, columns=["date", "ticker", "field", "value"])
         df.loc[:, "date"] = pd.to_datetime(df.loc[:, "date"])
         if not longdata:
             cols = ['ticker', 'field']

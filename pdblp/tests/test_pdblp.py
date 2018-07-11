@@ -72,6 +72,56 @@ class TestBCon(unittest.TestCase):
                                                    format="%Y%m%d")
         assert_frame_equal(df, df_exp)
 
+    def test_bdh_empty_data_only(self):
+        df = self.con.bdh(
+                tickers=['1437355D US Equity'],
+                flds=['PX_LAST', 'VOLUME'],
+                start_date='20180510',
+                end_date='20180511',
+                longdata=False
+        )
+        df_exp = pd.DataFrame(
+          [], index=pd.DatetimeIndex([], name='date'),
+          columns=pd.MultiIndex.from_product([[], []],
+                                             names=('ticker', 'field'))
+        )
+        assert_frame_equal(df, df_exp)
+
+    def test_bdh_empty_data_with_non_empty_data(self):
+        df = self.con.bdh(
+                tickers=['AAPL US Equity', '1437355D US Equity'],
+                flds=['PX_LAST', 'VOLUME'],
+                start_date='20180510',
+                end_date='20180511',
+                longdata=False
+        )
+        df_exp = pd.DataFrame(
+            [[190.04, 27989289.0], [188.59, 26212221.0]],
+            index=pd.DatetimeIndex(["20180510", "20180511"], name="date"),
+            columns=pd.MultiIndex.from_product([["AAPL US Equity"],
+                                                ["PX_LAST", "VOLUME"]],
+                                               names=["ticker", "field"])
+        )
+        assert_frame_equal(df, df_exp)
+
+    def test_bdh_partially_empty_data(self):
+        df = self.con.bdh(
+                tickers=['XIV US Equity', 'AAPL US Equity'],
+                flds=['PX_LAST'],
+                start_date='20180215',
+                end_date='20180216',
+                longdata=False
+        )
+        df_exp = pd.DataFrame(
+            [[6.04, 172.99], [np.NaN, 172.43]],
+            index=pd.DatetimeIndex(["20180215", "20180216"], name="date"),
+            columns=pd.MultiIndex.from_product(
+                        [["XIV US Equity", "AAPL US Equity"], ["PX_LAST"]],
+                        names=["ticker", "field"]
+                    )
+        )
+        assert_frame_equal(df, df_exp)
+
     def test_bdh_one_ticker_one_field_pivoted(self):
         df = self.con.bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
         midx = pd.MultiIndex(levels=[["SPY US Equity"], ["PX_LAST"]],
