@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 import contextlib
 from collections import defaultdict
-from pandas import DataFrame
 
 
 def _get_logger(debug):
@@ -148,7 +147,7 @@ class BCon(object):
     def bdh(self, tickers, flds, start_date, end_date, elms=None,
             ovrds=None, longdata=False):
         """
-        Get tickers and fields, return pandas Dataframe with columns as
+        Get tickers and fields, return pandas DataFrame with columns as
         MultiIndex with levels "ticker" and "field" and indexed by "date".
         If long data is requested return DataFrame with columns
         ["date", "ticker", "field", "value"].
@@ -182,7 +181,7 @@ class BCon(object):
         data = self._bdh_list(tickers, flds, start_date, end_date,
                               elms, ovrds)
 
-        df = DataFrame(data, columns=["date", "ticker", "field", "value"])
+        df = pd.DataFrame(data, columns=["date", "ticker", "field", "value"])
         df.loc[:, "date"] = pd.to_datetime(df.loc[:, "date"])
         if not longdata:
             cols = ['ticker', 'field']
@@ -242,7 +241,7 @@ class BCon(object):
     def ref(self, tickers, flds, ovrds=None):
         """
         Make a reference data request, get tickers and fields, return long
-        pandas Dataframe with columns [ticker, field, value]
+        pandas DataFrame with columns [ticker, field, value]
 
         Parameters
         ----------
@@ -282,7 +281,7 @@ class BCon(object):
         logger.info("Sending Request:\n %s" % request)
         self.session.sendRequest(request)
         data = self._parse_ref(flds)
-        data = DataFrame(data)
+        data = pd.DataFrame(data)
         data.columns = ["ticker", "field", "value"]
         return data
 
@@ -343,7 +342,7 @@ class BCon(object):
     def bulkref(self, tickers, flds, ovrds=None):
         """
         Make a bulk reference data request, get tickers and fields, return long
-        pandas Dataframe with columns [ticker, field, name, value, position].
+        pandas DataFrame with columns [ticker, field, name, value, position].
         Name refers to the element name and position is the position in the
         corresponding array returned.
 
@@ -399,7 +398,7 @@ class BCon(object):
         logger.info("Sending Request:\n %s" % request)
         self.session.sendRequest(request)
         data = self._parse_bulkref(flds)
-        data = DataFrame(data)
+        data = pd.DataFrame(data)
         data.columns = ["ticker", "field", "name", "value", "position"]
         return data
 
@@ -471,7 +470,7 @@ class BCon(object):
     def ref_hist(self, tickers, flds, dates, ovrds=None,
                  date_field="REFERENCE_DATE"):
         """
-        Make iterative calls to ref() and create a long dataframe with columns
+        Make iterative calls to ref() and create a long DataFrame with columns
         [date, ticker, field, value] where each date corresponds to overriding
         a historical data override field.
 
@@ -523,7 +522,7 @@ class BCon(object):
     def bulkref_hist(self, tickers, flds, dates, ovrds=None,
                      date_field="REFERENCE_DATE"):
         """
-        Make iterative calls to bulkref() and create a long dataframe with
+        Make iterative calls to bulkref() and create a long DataFrame with
         columns [date, ticker, field, name, value, position] where each date
         corresponds to overriding a historical data override field.
 
@@ -597,7 +596,7 @@ class BCon(object):
              elms=None):
         """
         Get Open, High, Low, Close, Volume, and numEvents for a ticker.
-        Return pandas dataframe
+        Return pandas DataFrame
 
         Parameters
         ----------
@@ -656,7 +655,7 @@ class BCon(object):
             if ev.eventType() == blpapi.Event.RESPONSE:
                 # Response completly received, so we could exit
                 break
-        data = DataFrame(data)
+        data = pd.DataFrame(data)
         if not data.empty:
             data.index = pd.to_datetime(data.index)
             data = data[flds]
