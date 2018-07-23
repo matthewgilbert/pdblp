@@ -13,6 +13,8 @@ The library borrows heavily from a similar package available
 
 ## Requires
 
+`python 3.x`
+
 [Bloomberg Open API](http://www.bloomberglabs.com/api/)
 
 [pandas](http://pandas.pydata.org/)
