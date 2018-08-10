@@ -614,3 +614,47 @@ class TestParser(unittest.TestCase):
                     }
                    }]
         self.assertEqual(res, exp_res)
+
+    def test_historical_data_response_nan(self):
+        test_str = """
+         HistoricalDataResponse = {
+            securityData = {
+                security = "EDM98 Comdty"
+                eidData[] = {
+                }
+                sequenceNumber = 66
+                fieldExceptions[] = {
+                }
+                fieldData[] = {
+                    fieldData = {
+                        date = 1996-07-08
+                        PX_SETTLE = 92.910000
+                        PX_HIGH = nan
+                        PX_LOW = nan
+                        PX_OPEN = 92.870000
+                    }
+                }
+            }
+        }
+        """
+        res = parser.to_dict_list(test_str)
+
+        exp_res = [{"HistoricalDataResponse":
+                    {"securityData":
+                     {"security": "EDM98 Comdty",
+                      "eidData": [],
+                      "sequenceNumber": 66,
+                      "fieldExceptions": [],
+                      "fieldData":
+                      [
+                       {"fieldData": {"date": "1996-07-08",
+                                      "PX_SETTLE": 92.91,
+                                      "PX_HIGH": "nan",
+                                      "PX_LOW": "nan",
+                                      "PX_OPEN": 92.87}
+                        }
+                      ]
+                      }
+                     }
+                    }]
+        self.assertEqual(res, exp_res)

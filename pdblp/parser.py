@@ -20,7 +20,8 @@ def _parse(mystr):
     number = pp.pyparsing_common.number()
     date_expr = pp.Regex(r'\d\d\d\d-\d\d-\d\d')
     time_expr = pp.Regex(r'\d\d:\d\d:\d\d\.\d\d\d')
-    scalar_value = (string | date_expr | time_expr | number)
+    nan = pp.Keyword('nan')
+    scalar_value = (string | date_expr | time_expr | number | nan)
 
     list_marker = pp.Suppress("[]")
     value_list = pp.Forward()
