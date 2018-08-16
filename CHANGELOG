@@ -29,3 +29,12 @@ instantiation
 - Update tutorial docs to reflect new functions
 - Update Sphinx build process to use sphinx 1.7.5 and provide environment
 file for building docs
+
+# pdblp 0.1.6
+
+- Add ability to chain start() method, e.g. con = BCon().start()
+- Fix logger to interface with upstream logging libraries
+- Add pull request template
+- Add NaN support to parser grammar
+- Support empty bulkref() requests
+
