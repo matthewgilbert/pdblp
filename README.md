@@ -1,5 +1,6 @@
 pdblp
 =====
+[![PyPI version](https://badge.fury.io/py/pdblp.svg)](https://badge.fury.io/py/pdblp)
 
 This is a simple interface to integrate pandas and the Bloomberg Open API.
 The standard Bloomberg API provides an extensive set of features for building
