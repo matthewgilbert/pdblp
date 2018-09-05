@@ -145,7 +145,7 @@ class BCon(object):
         return request
 
     def bdh(self, tickers, flds, start_date, end_date, elms=None,
-            ovrds=None, longdata=False):
+            ovrds=None, longdata=False, **kwargs):
         """
         Get tickers and fields, return pandas DataFrame with columns as
         MultiIndex with levels "ticker" and "field" and indexed by "date".
@@ -172,9 +172,11 @@ class BCon(object):
             field and value
         longdata: boolean
             Whether data should be returned in long data format or pivoted
+        **kwargs: overrides in the form of kwargs
         """
         ovrds = [] if not ovrds else ovrds
         elms = [] if not elms else elms
+        ovrds += [(k, v) for k, v in kwargs.items()]
 
         elms = list(elms)
 
@@ -238,7 +240,7 @@ class BCon(object):
 
         return data
 
-    def ref(self, tickers, flds, ovrds=None):
+    def ref(self, tickers, flds, ovrds=None, **kwargs):
         """
         Make a reference data request, get tickers and fields, return long
         pandas DataFrame with columns [ticker, field, value]
@@ -252,6 +254,7 @@ class BCon(object):
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value
+        **kwargs: overrides in the form of kwargs
 
         Example
         -------
@@ -270,6 +273,7 @@ class BCon(object):
         }
         """
         ovrds = [] if not ovrds else ovrds
+        ovrds += [(k, v) for k, v in kwargs.items()]
 
         logger = _get_logger(self.debug)
         if type(tickers) is not list:
@@ -339,7 +343,7 @@ class BCon(object):
                 raise RuntimeError("Timeout, increase BCon.timeout attribute")
         return data
 
-    def bulkref(self, tickers, flds, ovrds=None):
+    def bulkref(self, tickers, flds, ovrds=None, **kwargs):
         """
         Make a bulk reference data request, get tickers and fields, return long
         pandas DataFrame with columns [ticker, field, name, value, position].
@@ -355,6 +359,7 @@ class BCon(object):
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value
+        **kwargs: overrides in the form of kwargs
 
         Example
         -------
@@ -386,6 +391,7 @@ class BCon(object):
         }
         """
         ovrds = [] if not ovrds else ovrds
+        ovrds += [(k, v) for k, v in kwargs.items()]
 
         logger = _get_logger(self.debug)
         if type(tickers) is not list:
@@ -468,7 +474,7 @@ class BCon(object):
                 raise ValueError("%s: %s" % (fe.getElement("fieldId").getValue(), category))  # NOQA
 
     def ref_hist(self, tickers, flds, dates, ovrds=None,
-                 date_field="REFERENCE_DATE"):
+                 date_field="REFERENCE_DATE", **kwargs):
         """
         Make iterative calls to ref() and create a long DataFrame with columns
         [date, ticker, field, value] where each date corresponds to overriding
@@ -489,6 +495,7 @@ class BCon(object):
         date_field: str
             Field to iteratively override for requesting historical data,
             e.g. REFERENCE_DATE, CURVE_DATE, etc.
+        **kwargs: overrides in the form of kwargs
 
         Example
         -------
@@ -504,6 +511,7 @@ class BCon(object):
         # a session for each call
 
         ovrds = [] if not ovrds else ovrds
+        ovrds += [(k, v) for k, v in kwargs.items()]
 
         if type(tickers) is not list:
             tickers = [tickers]
@@ -520,7 +528,7 @@ class BCon(object):
         return data
 
     def bulkref_hist(self, tickers, flds, dates, ovrds=None,
-                     date_field="REFERENCE_DATE"):
+                     date_field="REFERENCE_DATE", **kwargs):
         """
         Make iterative calls to bulkref() and create a long DataFrame with
         columns [date, ticker, field, name, value, position] where each date
@@ -541,6 +549,7 @@ class BCon(object):
         date_field: str
             Field to iteratively override for requesting historical data,
             e.g. REFERENCE_DATE, CURVE_DATE, etc.
+        **kwargs: overrides in the form of kwargs
 
         Example
         -------
@@ -557,6 +566,7 @@ class BCon(object):
         # a session for each call
 
         ovrds = [] if not ovrds else ovrds
+        ovrds += [(k, v) for k, v in kwargs.items()]
 
         if type(tickers) is not list:
             tickers = [tickers]
