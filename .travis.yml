@@ -1,0 +1,59 @@
+# from http://conda.pydata.org/docs/travis.html
+language: python
+dist: trusty
+python:
+   - "3.4"
+   - "3.5"
+   - "3.6"
+   - "3.7"
+install:
+  - sudo apt-get update
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+
+  # Replace dep1 dep2 ... with your dependencies
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pip flake8
+    conda-build anaconda-client conda-verify
+
+  - source activate test-environment
+  - python setup.py install
+
+# command to run tests
+script:
+  - flake8 pdblp
+  - if [ $TRAVIS_PYTHON_VERSION != 3.5]; then conda-build --no-anaconda-upload .; fi
+
+after_success:
+  - if [[ $TRAVIS_TAG && $TRAVIS_PYTHON_VERSION != 3.5]];
+    then echo "Uploading $(conda build . --output) to anaconda cloud"; fi
+  - if [[ $TRAVIS_TAG && $TRAVIS_PYTHON_VERSION != 3.5]];
+    then anaconda -t $CONDA_UPLOAD_TOKEN upload $(conda build . --output); fi
+
+notifications:
+  email: false
+
+deploy:
+  provider: pypi
+  user: matthewgilbert
+  password:
+    # generate from terminal using "travis encrypt PYPI_PW -r user/repo"
+    secure: "HxPPIPrvUY0lOkRfzhRGn+gN2aBxInjE17xKRd8louQWumjJNFqD2NEC1jKKB25wz4w9wr9gJ7XEWf3RqRvNvt6NfxTPd1XE8L8sfmD5z7i9HKX/9jTtL7fjMaLwSjqp9H1WTnQc0BhpYJuOkZBlDcDcEXL3vMmV43U9uGoDHWw/zRoWrwj0PuAZ5YzQVRn6I+f6wfygHPLfBc2IdpXMrQugm0nECwVsJMJrInDQRopSd3fsXH9iPFCr1kAqu3+5zRjA6YVWJ/2dN4B1SnKj1mU+kWc3wMAmYYh+RAfn6qzpgnnsTA7PoJitRC1z+dtycmRzhsg0+uQv4N4WGHPZSbC3VkCEGBoINaoxbkCKb25ZChmd2TCGi9/WYDFXVmSoe/44Wf1P662MBpvCkaiOd14S0zIuNv6U5ewDw0fXvsDT0lUCzsGG3/tCkG21SunV8X9vIVIfHDeH/YUdFO9qqFZaZ2B2/jDmgQ5rL/alMFwfcTd9VmPyWJPE9drtnOVk6reBBs/YidruFJJ4BILXUqQ38aELpDswC+T4q1Nfgmv7aZIBa1kkM8wp1OMHH73I89sekUxEIZAGbRi/RiSj59yTUOTW5J7y4swhYA+A4nZd2083xAmapY0l+Kjut8s9k48WJYfm96p0Qqk7Deo7vgdbe/hRZdMHX7NwOdmPGMk="
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: matthewgilbert/pdblp
+    branch: master
+    condition: $TRAVIS_PYTHON_VERSION == 3.7

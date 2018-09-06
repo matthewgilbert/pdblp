@@ -1,0 +1,30 @@
+package:
+    name: pdblp
+    version: {{ environ.get('GIT_DESCRIBE_TAG','').replace('v', '', 1) }}
+
+source:
+    git_url: ../
+
+requirements:
+  host:
+    - pandas
+    - pip
+    - python
+  run:
+    - pandas
+    - python
+
+# testing reference
+# https://github.com/conda-forge/conda-forge.github.io/issues/345
+test:
+  requires:
+    - pytest
+  imports:
+    - pdblp
+    - pdblp.tests
+  commands:
+    - pytest --pyargs pdblp
+
+about:
+  home: https://github.com/matthewgilbert/pdblp
+  license: MIT
