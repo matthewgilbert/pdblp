@@ -31,7 +31,7 @@ install:
 
   # Replace dep1 dep2 ... with your dependencies
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pip flake8
-    conda-build anaconda-client conda-verify
+    pytest conda-build anaconda-client conda-verify
 
   - source activate test-environment
   - python setup.py install
@@ -39,6 +39,7 @@ install:
 # command to run tests
 script:
   - flake8 pdblp
+  - pytest pdblp/tests -v --offline
   - if [ $TRAVIS_PYTHON_VERSION != 3.5]; then conda-build --no-anaconda-upload .; fi
 
 after_success:

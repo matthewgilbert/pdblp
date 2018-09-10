@@ -12,5 +12,5 @@ lint:
 test:
 	pytest pdblp/tests -v
 
-test_parse:
-	pytest  pdblp/tests/test_parser.py -v
+test_offline:
+	pytest  pdblp/tests/ -v --offline
