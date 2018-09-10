@@ -5,6 +5,8 @@ import numpy as np
 import contextlib
 from collections import defaultdict
 
+RESPONSE_TYPES = [blpapi.Event.RESPONSE, blpapi.Event.PARTIAL_RESPONSE]
+
 
 def _get_logger(debug):
     logger = logging.getLogger(__name__)
@@ -141,6 +143,20 @@ class BCon(object):
 
         return request
 
+    def _receive_events(self, sent_events=1):
+        while True:
+            # We provide timeout to give the chance for Ctrl+C handling:
+            ev = self.session.nextEvent(self.timeout)
+            if ev.eventType() in RESPONSE_TYPES:
+                for msg in ev:
+                    yield msg
+            if ev.eventType() == blpapi.Event.RESPONSE:
+                sent_events -= 1
+                if sent_events == 0:
+                    break
+            elif ev.eventType() == blpapi.Event.TIMEOUT:
+                raise RuntimeError("Timeout, increase BCon.timeout attribute")
+
     def bdh(self, tickers, flds, start_date, end_date, elms=None,
             ovrds=None, longdata=False):
         """
@@ -206,32 +222,27 @@ class BCon(object):
         self.session.sendRequest(request)
         data = []
         # Process received events
-        while(True):
-            ev = self.session.nextEvent(self.timeout)
-            for msg in ev:
-                logger.info("Message Received:\n %s" % msg)
-                has_security_error = (msg.getElement('securityData')
-                                      .hasElement('securityError'))
-                has_field_exception = (msg.getElement('securityData')
-                                       .getElement("fieldExceptions")
-                                       .numValues() > 0)
-                if has_security_error or has_field_exception:
-                    raise ValueError(msg)
-                ticker = (msg.getElement('securityData')
-                          .getElement('security').getValue())
-                fldDatas = (msg.getElement('securityData')
-                            .getElement('fieldData'))
-                for fd in fldDatas.values():
-                    dt = fd.getElement('date').getValue()
-                    for element in fd.elements():
-                        fname = str(element.name())
-                        if fname == "date":
-                            continue
-                        val = element.getValue()
-                        data.append((dt, ticker, fname, val))
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completely received, so we could exit
-                break
+        for msg in self._receive_events():
+            logger.info("Message Received:\n %s" % msg)
+            has_security_error = (msg.getElement('securityData')
+                                  .hasElement('securityError'))
+            has_field_exception = (msg.getElement('securityData')
+                                   .getElement("fieldExceptions")
+                                   .numValues() > 0)
+            if has_security_error or has_field_exception:
+                raise ValueError(msg)
+            ticker = (msg.getElement('securityData')
+                      .getElement('security').getValue())
+            fldDatas = (msg.getElement('securityData')
+                        .getElement('fieldData'))
+            for fd in fldDatas.values():
+                dt = fd.getElement('date').getValue()
+                for element in fd.elements():
+                    fname = str(element.name())
+                    if fname == "date":
+                        continue
+                    val = element.getValue()
+                    data.append((dt, ticker, fname, val))
 
         return data
 
@@ -286,54 +297,42 @@ class BCon(object):
         logger = _get_logger(self.debug)
         data = []
         # Process received events
-        while(True):
-            ev = self.session.nextEvent(self.timeout)
-            for msg in ev:
-                logger.info("Message Received:\n %s" % msg)
-                if keep_corrId:
-                    corrId = [msg.correlationIds()[0].value()]
-                else:
-                    corrId = []
-                secDataArray = msg.getElement('securityData')
-                for secDataElm in secDataArray.values():
-                    ticker = secDataElm.getElement("security").getValue()
-                    if secDataElm.hasElement("securityError"):
-                        raise ValueError("Unknow security %s" % ticker)
-                    self._check_fieldExceptions(secDataElm.getElement("fieldExceptions"))  # NOQA
-                    fieldData = secDataElm.getElement('fieldData')
-                    for j in range(len(flds)):
-                        fld = flds[j]
-                        # avoid returning nested bbg objects, fail instead
-                        # since user should use bulkref()
-                        if fieldData.hasElement(fld):
-                            if fieldData.getElement(fld).isArray():
-                                raise ValueError("Field '{0}' returns bulk "
-                                                 "reference data which is not "
-                                                 "supported".format(fld))
-                        # this is a slight hack but if a fieldData response
-                        # does not have the element fld and this is not a bad
-                        # field (which is checked above) then the assumption is
-                        # that this is a not applicable field, thus set NaN
-                        # see https://github.com/matthewgilbert/pdblp/issues/13
-                        if not fieldData.hasElement(fld):
-                            dataj = [ticker, fld, np.NaN]
-                            dataj.extend(corrId)
-                            data.append(dataj)
-                        else:
-                            val = fieldData.getElement(fld).getValue()
-                            dataj = [ticker, fld, val]
-                            dataj.extend(corrId)
-                            data.append(dataj)
-
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completely received, so we could exit
-                sent_events = sent_events - 1
-                if sent_events == 0:
-                    break
-            # calls can occassionally timeout in unpredictable manner due
-            # to variability in BBG response times
-            elif ev.eventType() == blpapi.Event.TIMEOUT:
-                raise RuntimeError("Timeout, increase BCon.timeout attribute")
+        for msg in self._receive_events(sent_events):
+            logger.info("Message Received:\n %s" % msg)
+            if keep_corrId:
+                corrId = [msg.correlationIds()[0].value()]
+            else:
+                corrId = []
+            secDataArray = msg.getElement('securityData')
+            for secDataElm in secDataArray.values():
+                ticker = secDataElm.getElement("security").getValue()
+                if secDataElm.hasElement("securityError"):
+                    raise ValueError("Unknow security %s" % ticker)
+                self._check_fieldExceptions(secDataElm.getElement("fieldExceptions"))  # NOQA
+                fieldData = secDataElm.getElement('fieldData')
+                for j in range(len(flds)):
+                    fld = flds[j]
+                    # avoid returning nested bbg objects, fail instead
+                    # since user should use bulkref()
+                    if fieldData.hasElement(fld):
+                        if fieldData.getElement(fld).isArray():
+                            raise ValueError("Field '{0}' returns bulk "
+                                             "reference data which is not "
+                                             "supported".format(fld))
+                    # this is a slight hack but if a fieldData response
+                    # does not have the element fld and this is not a bad
+                    # field (which is checked above) then the assumption is
+                    # that this is a not applicable field, thus set NaN
+                    # see https://github.com/matthewgilbert/pdblp/issues/13
+                    if not fieldData.hasElement(fld):
+                        dataj = [ticker, fld, np.NaN]
+                        dataj.extend(corrId)
+                        data.append(dataj)
+                    else:
+                        val = fieldData.getElement(fld).getValue()
+                        dataj = [ticker, fld, val]
+                        dataj.extend(corrId)
+                        data.append(dataj)
         return data
 
     def bulkref(self, tickers, flds, ovrds=None):
@@ -403,54 +402,42 @@ class BCon(object):
         logger = _get_logger(self.debug)
         data = []
         # Process received events
-        while(True):
-            ev = self.session.nextEvent(self.timeout)
-            for msg in ev:
-                logger.info("Message Received:\n %s" % msg)
-                if keep_corrId:
-                    corrId = [msg.correlationIds()[0].value()]
-                else:
-                    corrId = []
-                secDataArray = msg.getElement('securityData')
-                for secDataElm in secDataArray.values():
-                    ticker = secDataElm.getElement("security").getValue()
-                    if secDataElm.hasElement("securityError"):
-                        raise ValueError("Unknow security %s" % ticker)
-                    self._check_fieldExceptions(secDataElm.getElement("fieldExceptions"))  # NOQA
-                    fieldData = secDataElm.getElement('fieldData')
-                    for j in range(len(flds)):
-                        fld = flds[j]
-                        if fieldData.hasElement(fld):
-                            # fail coherently instead of parsing downstream
-                            if not fieldData.getElement(fld).isArray():
-                                raise ValueError("Cannot parse field '{0}' "
-                                                 "which is not bulk reference "
-                                                 "data".format(fld))
-                            arrayValues = fieldData.getElement(fld).values()
-                            for i, field in enumerate(arrayValues):
-                                for elm in field.elements():
-                                    value_name = str(elm.name())
-                                    if not elm.isNull():
-                                        val = elm.getValue()
-                                    else:
-                                        val = np.NaN
-                                    dataj = [ticker, fld, value_name, val, i]
-                                    dataj.extend(corrId)
-                                    data.append(dataj)
-                        else:  # field is empty or NOT_APPLICABLE_TO_REF_DATA
-                            dataj = [ticker, fld, np.NaN, np.NaN, np.NaN]
-                            dataj.extend(corrId)
-                            data.append(dataj)
-
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completely received, so we could exit
-                sent_events = sent_events - 1
-                if sent_events == 0:
-                    break
-            # calls can occassionally timeout in unpredictable manner due
-            # to variability in BBG response times
-            elif ev.eventType() == blpapi.Event.TIMEOUT:
-                raise RuntimeError("Timeout, increase BCon.timeout attribute")
+        for msg in self._receive_events(sent_events):
+            logger.info("Message Received:\n %s" % msg)
+            if keep_corrId:
+                corrId = [msg.correlationIds()[0].value()]
+            else:
+                corrId = []
+            secDataArray = msg.getElement('securityData')
+            for secDataElm in secDataArray.values():
+                ticker = secDataElm.getElement("security").getValue()
+                if secDataElm.hasElement("securityError"):
+                    raise ValueError("Unknow security %s" % ticker)
+                self._check_fieldExceptions(secDataElm.getElement("fieldExceptions"))  # NOQA
+                fieldData = secDataElm.getElement('fieldData')
+                for j in range(len(flds)):
+                    fld = flds[j]
+                    if fieldData.hasElement(fld):
+                        # fail coherently instead of parsing downstream
+                        if not fieldData.getElement(fld).isArray():
+                            raise ValueError("Cannot parse field '{0}' "
+                                             "which is not bulk reference "
+                                             "data".format(fld))
+                        arrayValues = fieldData.getElement(fld).values()
+                        for i, field in enumerate(arrayValues):
+                            for elm in field.elements():
+                                value_name = str(elm.name())
+                                if not elm.isNull():
+                                    val = elm.getValue()
+                                else:
+                                    val = np.NaN
+                                dataj = [ticker, fld, value_name, val, i]
+                                dataj.extend(corrId)
+                                data.append(dataj)
+                    else:  # field is empty or NOT_APPLICABLE_TO_REF_DATA
+                        dataj = [ticker, fld, np.NaN, np.NaN, np.NaN]
+                        dataj.extend(corrId)
+                        data.append(dataj)
         return data
 
     @staticmethod
@@ -637,21 +624,16 @@ class BCon(object):
         data = defaultdict(dict)
         # Process received events
         flds = ['open', 'high', 'low', 'close', 'volume', 'numEvents']
-        while(True):
-            ev = self.session.nextEvent(self.timeout)
-            for msg in ev:
-                logger.info("Message Received:\n %s" % msg)
-                barTick = (msg.getElement('barData')
-                           .getElement('barTickData'))
-                for i in range(barTick.numValues()):
-                    for fld in flds:
-                        dt = barTick.getValue(i).getElement(0).getValue()
-                        val = (barTick.getValue(i).getElement(fld).getValue())
-                        data[(fld)][dt] = val
+        for msg in self._receive_events():
+            logger.info("Message Received:\n %s" % msg)
+            barTick = (msg.getElement('barData')
+                       .getElement('barTickData'))
+            for i in range(barTick.numValues()):
+                for fld in flds:
+                    dt = barTick.getValue(i).getElement(0).getValue()
+                    val = (barTick.getValue(i).getElement(fld).getValue())
+                    data[(fld)][dt] = val
 
-            if ev.eventType() == blpapi.Event.RESPONSE:
-                # Response completly received, so we could exit
-                break
         data = pd.DataFrame(data)
         if not data.empty:
             data.index = pd.to_datetime(data.index)
@@ -679,18 +661,11 @@ class BCon(object):
         request.set("Domain", domain)
         self.session.sendRequest(request)
         data = []
-        # Process received events
-        while True:
-            event = self.session.nextEvent(self.timeout)
-            if event.eventType() == blpapi.Event.RESPONSE or \
-               event.eventType() == blpapi.Event.PARTIAL_RESPONSE:
-                for msg in event:
-                    logger.info(msg)
-                    for v in msg.getElement("DataRecords").values():
-                        for f in v.getElement("DataFields").values():
-                            data.append(f.getElementAsString("StringValue"))
-            if event.eventType() == blpapi.Event.RESPONSE:
-                break
+        for msg in self._receive_events():
+            logger.info(msg)
+            for v in msg.getElement("DataRecords").values():
+                for f in v.getElement("DataFields").values():
+                    data.append(f.getElementAsString("StringValue"))
         return pd.DataFrame(data)
 
     def stop(self):
