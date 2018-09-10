@@ -662,7 +662,7 @@ class BCon(object):
         self.session.sendRequest(request)
         data = []
         for msg in self._receive_events():
-            logger.info(msg)
+            logger.info("Message Received:\n %s" % msg)
             for v in msg.getElement("DataRecords").values():
                 for f in v.getElement("DataFields").values():
                     data.append(f.getElementAsString("StringValue"))
