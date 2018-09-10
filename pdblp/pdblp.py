@@ -8,20 +8,17 @@ from collections import defaultdict
 
 def _get_logger(debug):
     logger = logging.getLogger(__name__)
-    if (logger.parent is not None) and logger.parent.hasHandlers():
-        if debug:
-            logger.warning("'pdblp.BCon.debug=True' is ignored when user "
-                           "specifies logging event handlers")
+    if (logger.parent is not None) and logger.parent.hasHandlers() and debug:
+        logger.warning("'pdblp.BCon.debug=True' is ignored when user "
+                       "specifies logging event handlers")
     else:
         if not logger.handlers:
             formatter = logging.Formatter('%(name)s:%(levelname)s:%(message)s')
             sh = logging.StreamHandler()
             sh.setFormatter(formatter)
             logger.addHandler(sh)
-        if debug:
-            logger.setLevel(logging.INFO)
-        else:
-            logger.setLevel(logging.WARNING)
+        debug_level = logging.INFO if debug else logging.WARNING
+        logger.setLevel(debug_level)
 
     return logger
 
