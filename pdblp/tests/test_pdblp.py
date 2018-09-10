@@ -87,6 +87,7 @@ def pivot_and_assert(df, df_exp, with_date=False):
 ifbbg = pytest.mark.skipif(pytest.config.cache.get('offline', False),
                            reason="No BBG connection, skipping tests")
 
+
 @ifbbg
 def test_bdh_empty_data_only(con):
     df = con.bdh(
@@ -230,7 +231,7 @@ def test_bdib(con):
     ts2e = prev_busday.strftime("%Y-%m-%d") + "T10:20:00"
     idx_exp = pd.date_range(ts1, ts2e, periods=3)
     col_exp = pd.Index(["open", "high", "low", "close", "volume", "numEvents"])
-    
+
     assert_index_equal(df.index, idx_exp)
     assert_index_equal(df.columns, col_exp)
 
