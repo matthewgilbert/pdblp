@@ -5,7 +5,7 @@ import numpy as np
 import contextlib
 from collections import defaultdict
 
-RESPONSE_TYPES = [blpapi.Event.RESPONSE, blpapi.Event.PARTIAL_RESPONSE]
+_RESPONSE_TYPES = [blpapi.Event.RESPONSE, blpapi.Event.PARTIAL_RESPONSE]
 
 # partial lookup table for events used from blpapi.Event
 _EVENT_DICT = {
@@ -198,17 +198,28 @@ class BCon(object):
         logger = _get_logger(self.debug)
         while True:
             ev = self.session.nextEvent(self.timeout)
-            logger.info("Event Type: %s" % _EVENT_DICT[ev.eventType()])
-            if ev.eventType() in RESPONSE_TYPES:
+            ev_name = _EVENT_DICT[ev.eventType()]
+            logger.info("Event Type: %s" % ev_name)
+            if ev.eventType() in _RESPONSE_TYPES:
                 for msg in ev:
                     logger.info("Message Received:\n%s" % msg)
                     yield msg
+
+            # deals with multi sends using CorrelationIds
             if ev.eventType() == blpapi.Event.RESPONSE:
                 sent_events -= 1
                 if sent_events == 0:
                     break
-            elif ev.eventType() == blpapi.Event.TIMEOUT:
-                raise RuntimeError("Timeout, increase BCon.timeout attribute")
+            # guard against unknown returned events
+            elif ev.eventType() not in _RESPONSE_TYPES:
+                logger.warning("Unexpected Event Type: %s" % ev_name)
+                for msg in ev:
+                    logger.warning("Message Received:\n%s" % msg)
+                if ev.eventType() == blpapi.Event.TIMEOUT:
+                    raise RuntimeError("Timeout, increase BCon.timeout "
+                                       "attribute")
+                else:
+                    raise RuntimeError("Unexpected Event Type: %s" % ev_name)
 
     def bdh(self, tickers, flds, start_date, end_date, elms=None,
             ovrds=None, longdata=False):
