@@ -7,6 +7,16 @@ from collections import defaultdict
 
 RESPONSE_TYPES = [blpapi.Event.RESPONSE, blpapi.Event.PARTIAL_RESPONSE]
 
+# partial lookup table for events used from blpapi.Event
+_EVENT_DICT = {
+              2: 'SESSION_STATUS',
+              5: 'RESPONSE',
+              6: 'PARTIAL_RESPONSE',
+              9: 'SERVICE_STATUS',
+              10: 'TIMEOUT',
+              15: 'REQUEST'
+}
+
 
 def _get_logger(debug):
     logger = logging.getLogger(__name__)
@@ -89,29 +99,70 @@ class BCon(object):
 
     def start(self):
         """
-        start connection and init service for refData
+        Start connection and initialize session services
         """
-        # Start a Session
+
+        # flush event queue in defensive way
         logger = _get_logger(self.debug)
-        if not self.session.start():
-            logger.warning("Failed to start session.")
-            raise ConnectionError("Could not start a blpapi.session")
-        self.session.nextEvent()
-        # Open service to get historical data from
-        if not self.session.openService("//blp/refdata"):
+        started = self.session.start()
+        if started:
+            ev = self.session.nextEvent()
+            ev_name = _EVENT_DICT[ev.eventType()]
+            logger.info("Event Type: %s" % ev_name)
+            for msg in ev:
+                logger.info("Message Received:\n%s" % msg)
+            if ev.eventType() != blpapi.Event.SESSION_STATUS:
+                raise RuntimeError("Expected a SESSION_STATUS event but "
+                                   "received a %s" % ev_name)
+            ev = self.session.nextEvent()
+            ev_name = _EVENT_DICT[ev.eventType()]
+            logger.info("Event Type: %s" % ev_name)
+            for msg in ev:
+                logger.info("Message Received:\n%s" % msg)
+            if ev.eventType() != blpapi.Event.SESSION_STATUS:
+                raise RuntimeError("Expected a SESSION_STATUS event but "
+                                   "received a %s" % ev_name)
+        else:
+            logger.warning("Failed to start session")
+            raise ConnectionError("Could not start blpapi.Session")
+        self.init_services()
+        return self
+
+    def init_services(self):
+        """
+        Initialize blpapi.Session services
+        """
+        logger = _get_logger(self.debug)
+
+        # flush event queue in defensive way
+        opened = self.session.openService("//blp/refdata")
+        ev = self.session.nextEvent()
+        ev_name = _EVENT_DICT[ev.eventType()]
+        logger.info("Event Type: %s" % ev_name)
+        for msg in ev:
+            logger.info("Message Received:\n%s" % msg)
+        if ev.eventType() != blpapi.Event.SERVICE_STATUS:
+            raise RuntimeError("Expected a SERVICE_STATUS event but "
+                               "received a %s" % ev_name)
+        if not opened:
             logger.warning("Failed to open //blp/refdata")
             raise ConnectionError("Could not open a //blp/refdata service")
-        self.session.nextEvent()
-        # Obtain previously opened service
         self.refDataService = self.session.getService("//blp/refdata")
-        self.session.nextEvent()
-        # Open BSearch Service
-        if not self.session.openService("//blp/exrsvc"):
+
+        opened = self.session.openService("//blp/exrsvc")
+        ev = self.session.nextEvent()
+        ev_name = _EVENT_DICT[ev.eventType()]
+        logger.info("Event Type: %s" % ev_name)
+        for msg in ev:
+            logger.info("Message Received:\n%s" % msg)
+        if ev.eventType() != blpapi.Event.SERVICE_STATUS:
+            raise RuntimeError("Expected a SERVICE_STATUS event but "
+                               "received a %s" % ev_name)
+        if not opened:
             logger.warning("Failed to open //blp/exrsvc")
             raise ConnectionError("Could not open a //blp/exrsvc service")
-        # Obtain previously opened service
         self.exrService = self.session.getService("//blp/exrsvc")
-        self.session.nextEvent()
+
         return self
 
     def restart(self):
