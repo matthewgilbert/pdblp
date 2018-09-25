@@ -195,11 +195,13 @@ class BCon(object):
         return request
 
     def _receive_events(self, sent_events=1):
+        logger = _get_logger(self.debug)
         while True:
-            # We provide timeout to give the chance for Ctrl+C handling:
             ev = self.session.nextEvent(self.timeout)
+            logger.info("Event Type: %s" % _EVENT_DICT[ev.eventType()])
             if ev.eventType() in RESPONSE_TYPES:
                 for msg in ev:
+                    logger.info("Message Received:\n%s" % msg)
                     yield msg
             if ev.eventType() == blpapi.Event.RESPONSE:
                 sent_events -= 1
@@ -268,13 +270,12 @@ class BCon(object):
 
         request = self._create_req("HistoricalDataRequest", tickers, flds,
                                    ovrds, setvals)
-        logger.info("Sending Request:\n %s" % request)
+        logger.info("Sending Request:\n%s" % request)
         # Send the request
         self.session.sendRequest(request)
         data = []
         # Process received events
         for msg in self._receive_events():
-            logger.info("Message Received:\n %s" % msg)
             has_security_error = (msg.getElement('securityData')
                                   .hasElement('securityError'))
             has_field_exception = (msg.getElement('securityData')
@@ -337,7 +338,7 @@ class BCon(object):
             flds = [flds]
         request = self._create_req("ReferenceDataRequest", tickers, flds,
                                    ovrds, [])
-        logger.info("Sending Request:\n %s" % request)
+        logger.info("Sending Request:\n%s" % request)
         self.session.sendRequest(request)
         data = self._parse_ref(flds)
         data = pd.DataFrame(data)
@@ -345,11 +346,9 @@ class BCon(object):
         return data
 
     def _parse_ref(self, flds, keep_corrId=False, sent_events=1):
-        logger = _get_logger(self.debug)
         data = []
         # Process received events
         for msg in self._receive_events(sent_events):
-            logger.info("Message Received:\n %s" % msg)
             if keep_corrId:
                 corrId = [msg.correlationIds()[0].value()]
             else:
@@ -442,7 +441,7 @@ class BCon(object):
         setvals = []
         request = self._create_req("ReferenceDataRequest", tickers, flds,
                                    ovrds, setvals)
-        logger.info("Sending Request:\n %s" % request)
+        logger.info("Sending Request:\n%s" % request)
         self.session.sendRequest(request)
         data = self._parse_bulkref(flds)
         data = pd.DataFrame(data)
@@ -450,11 +449,9 @@ class BCon(object):
         return data
 
     def _parse_bulkref(self, flds, keep_corrId=False, sent_events=1):
-        logger = _get_logger(self.debug)
         data = []
         # Process received events
         for msg in self._receive_events(sent_events):
-            logger.info("Message Received:\n %s" % msg)
             if keep_corrId:
                 corrId = [msg.correlationIds()[0].value()]
             else:
@@ -624,7 +621,7 @@ class BCon(object):
             # CorrelationID used to keep track of which response coincides with
             # which request
             cid = blpapi.CorrelationId(dt)
-            logger.info("Sending Request:\n %s" % request)
+            logger.info("Sending Request:\n%s" % request)
             self.session.sendRequest(request, correlationId=cid)
 
     def bdib(self, ticker, start_datetime, end_datetime, event_type, interval,
@@ -668,7 +665,7 @@ class BCon(object):
         for name, val in elms:
             request.set(name, val)
 
-        logger.info("Sending Request:\n %s" % request)
+        logger.info("Sending Request:\n%s" % request)
         # Send the request
         self.session.sendRequest(request)
         # defaultdict - later convert to pandas
@@ -676,7 +673,6 @@ class BCon(object):
         # Process received events
         flds = ['open', 'high', 'low', 'close', 'volume', 'numEvents']
         for msg in self._receive_events():
-            logger.info("Message Received:\n %s" % msg)
             barTick = (msg.getElement('barData')
                        .getElement('barTickData'))
             for i in range(barTick.numValues()):
@@ -712,10 +708,10 @@ class BCon(object):
         logger = _get_logger(self.debug)
         request = self.exrService.createRequest("ExcelGetGridRequest")
         request.set("Domain", domain)
+        logger.info("Sending Request:\n%s" % request)
         self.session.sendRequest(request)
         data = []
         for msg in self._receive_events():
-            logger.info("Message Received:\n %s" % msg)
             for v in msg.getElement("DataRecords").values():
                 for f in v.getElement("DataFields").values():
                     data.append(f.getElementAsString("StringValue"))
