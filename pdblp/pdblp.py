@@ -165,14 +165,6 @@ class BCon(object):
 
         return self
 
-    def restart(self):
-        """
-        Restart the blp session
-        """
-        # Recreate a Session
-        self.session = blpapi.Session(self._sessionOptions)
-        self.start()
-
     def _create_req(self, rtype, tickers, flds, ovrds, setvals):
         # flush event queue in case previous call errored out
         while(self.session.tryNextEvent()):
@@ -542,10 +534,6 @@ class BCon(object):
         >>> con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", dates)
 
         """
-        # correlationIDs should be unique to a session so rather than
-        # managing unique IDs for the duration of the session just restart
-        # a session for each call
-
         ovrds = [] if not ovrds else ovrds
 
         if type(tickers) is not list:
@@ -595,10 +583,6 @@ class BCon(object):
         ...                  date_field="CURVE_DATE")
 
         """
-        # correlationIDs should be unique to a session so rather than
-        # managing unique IDs for the duration of the session just restart
-        # a session for each call
-
         ovrds = [] if not ovrds else ovrds
 
         if type(tickers) is not list:
@@ -617,7 +601,6 @@ class BCon(object):
 
     def _send_hist(self, tickers, flds, dates, date_field, ovrds):
         logger = _get_logger(self.debug)
-        self.restart()
         setvals = []
         request = self._create_req("ReferenceDataRequest", tickers, flds,
                                    ovrds, setvals)
