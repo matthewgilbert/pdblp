@@ -38,3 +38,11 @@ file for building docs
 - Add NaN support to parser grammar
 - Support empty bulkref() requests
 
+# pdblp 0.1.7
+
+- Automate conda and pypi deploys with TravisCI
+- Change from unittest to using pytest
+- Seperate offline tests which do not require BBG connection
+- Refactor event handling and logging into _receive_events()
+- Remove restart() method, see issue #46
+- Allow constructor to take a blpapi.Session and blpapi.Identity, for SAPI
