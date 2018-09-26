@@ -54,7 +54,8 @@ def bopen(**kwargs):
 
 
 class BCon(object):
-    def __init__(self, host='localhost', port=8194, debug=False, timeout=500):
+    def __init__(self, host='localhost', port=8194, debug=False, timeout=500,
+                 session=None, identity=None):
         """
         Create an object which manages connection to the Bloomberg API session
 
@@ -70,15 +71,24 @@ class BCon(object):
         timeout: int
             Number of milliseconds before timeout occurs when parsing response.
             See blp.Session.nextEvent() for more information.
+        session: blpapi.Session
+            A custom Bloomberg API session. If this is passed the host and port
+            parameters are ignored. This is exposed to allow the user more
+            customization in how they instantiate a session.
+        identity: blpapi.Identity
+            Identity to use for request authentication. This should only be
+            passed with an appropriate session and should already by
+            authenticated. This is only relevant for SAPI and B-Pipe.
         """
-        # Fill SessionOptions
-        sessionOptions = blpapi.SessionOptions()
-        sessionOptions.setServerHost(host)
-        sessionOptions.setServerPort(port)
-        self._sessionOptions = sessionOptions
-        # Create a Session
-        self.session = blpapi.Session(sessionOptions)
+
+        if session is None:
+            sessionOptions = blpapi.SessionOptions()
+            sessionOptions.setServerHost(host)
+            sessionOptions.setServerPort(port)
+            session = blpapi.Session(sessionOptions)
         self.timeout = timeout
+        self._session = session
+        self._identity = identity
         # initialize logger
         self.debug = debug
 
@@ -104,9 +114,9 @@ class BCon(object):
 
         # flush event queue in defensive way
         logger = _get_logger(self.debug)
-        started = self.session.start()
+        started = self._session.start()
         if started:
-            ev = self.session.nextEvent()
+            ev = self._session.nextEvent()
             ev_name = _EVENT_DICT[ev.eventType()]
             logger.info("Event Type: %s" % ev_name)
             for msg in ev:
@@ -114,7 +124,7 @@ class BCon(object):
             if ev.eventType() != blpapi.Event.SESSION_STATUS:
                 raise RuntimeError("Expected a SESSION_STATUS event but "
                                    "received a %s" % ev_name)
-            ev = self.session.nextEvent()
+            ev = self._session.nextEvent()
             ev_name = _EVENT_DICT[ev.eventType()]
             logger.info("Event Type: %s" % ev_name)
             for msg in ev:
@@ -135,8 +145,8 @@ class BCon(object):
         logger = _get_logger(self.debug)
 
         # flush event queue in defensive way
-        opened = self.session.openService("//blp/refdata")
-        ev = self.session.nextEvent()
+        opened = self._session.openService("//blp/refdata")
+        ev = self._session.nextEvent()
         ev_name = _EVENT_DICT[ev.eventType()]
         logger.info("Event Type: %s" % ev_name)
         for msg in ev:
@@ -147,10 +157,10 @@ class BCon(object):
         if not opened:
             logger.warning("Failed to open //blp/refdata")
             raise ConnectionError("Could not open a //blp/refdata service")
-        self.refDataService = self.session.getService("//blp/refdata")
+        self.refDataService = self._session.getService("//blp/refdata")
 
-        opened = self.session.openService("//blp/exrsvc")
-        ev = self.session.nextEvent()
+        opened = self._session.openService("//blp/exrsvc")
+        ev = self._session.nextEvent()
         ev_name = _EVENT_DICT[ev.eventType()]
         logger.info("Event Type: %s" % ev_name)
         for msg in ev:
@@ -161,13 +171,13 @@ class BCon(object):
         if not opened:
             logger.warning("Failed to open //blp/exrsvc")
             raise ConnectionError("Could not open a //blp/exrsvc service")
-        self.exrService = self.session.getService("//blp/exrsvc")
+        self.exrService = self._session.getService("//blp/exrsvc")
 
         return self
 
     def _create_req(self, rtype, tickers, flds, ovrds, setvals):
         # flush event queue in case previous call errored out
-        while(self.session.tryNextEvent()):
+        while(self._session.tryNextEvent()):
             pass
 
         request = self.refDataService.createRequest(rtype)
@@ -189,7 +199,7 @@ class BCon(object):
     def _receive_events(self, sent_events=1):
         logger = _get_logger(self.debug)
         while True:
-            ev = self.session.nextEvent(self.timeout)
+            ev = self._session.nextEvent(self.timeout)
             ev_name = _EVENT_DICT[ev.eventType()]
             logger.info("Event Type: %s" % ev_name)
             if ev.eventType() in _RESPONSE_TYPES:
@@ -275,7 +285,7 @@ class BCon(object):
                                    ovrds, setvals)
         logger.info("Sending Request:\n%s" % request)
         # Send the request
-        self.session.sendRequest(request)
+        self._session.sendRequest(request, identity=self._identity)
         data = []
         # Process received events
         for msg in self._receive_events():
@@ -342,7 +352,7 @@ class BCon(object):
         request = self._create_req("ReferenceDataRequest", tickers, flds,
                                    ovrds, [])
         logger.info("Sending Request:\n%s" % request)
-        self.session.sendRequest(request)
+        self._session.sendRequest(request, identity=self._identity)
         data = self._parse_ref(flds)
         data = pd.DataFrame(data)
         data.columns = ["ticker", "field", "value"]
@@ -445,7 +455,7 @@ class BCon(object):
         request = self._create_req("ReferenceDataRequest", tickers, flds,
                                    ovrds, setvals)
         logger.info("Sending Request:\n%s" % request)
-        self.session.sendRequest(request)
+        self._session.sendRequest(request, identity=self._identity)
         data = self._parse_bulkref(flds)
         data = pd.DataFrame(data)
         data.columns = ["ticker", "field", "name", "value", "position"]
@@ -616,7 +626,8 @@ class BCon(object):
             # which request
             cid = blpapi.CorrelationId(dt)
             logger.info("Sending Request:\n%s" % request)
-            self.session.sendRequest(request, correlationId=cid)
+            self._session.sendRequest(request, identity=self._identity,
+                                      correlationId=cid)
 
     def bdib(self, ticker, start_datetime, end_datetime, event_type, interval,
              elms=None):
@@ -646,7 +657,7 @@ class BCon(object):
 
         # flush event queue in case previous call errored out
         logger = _get_logger(self.debug)
-        while(self.session.tryNextEvent()):
+        while(self._session.tryNextEvent()):
             pass
 
         # Create and fill the request for the historical data
@@ -661,7 +672,7 @@ class BCon(object):
 
         logger.info("Sending Request:\n%s" % request)
         # Send the request
-        self.session.sendRequest(request)
+        self._session.sendRequest(request, identity=self._identity)
         # defaultdict - later convert to pandas
         data = defaultdict(dict)
         # Process received events
@@ -703,7 +714,7 @@ class BCon(object):
         request = self.exrService.createRequest("ExcelGetGridRequest")
         request.set("Domain", domain)
         logger.info("Sending Request:\n%s" % request)
-        self.session.sendRequest(request)
+        self._session.sendRequest(request, identity=self._identity)
         data = []
         for msg in self._receive_events():
             for v in msg.getElement("DataRecords").values():
@@ -715,4 +726,4 @@ class BCon(object):
         """
         Close the blp session
         """
-        self.session.stop()
+        self._session.stop()
