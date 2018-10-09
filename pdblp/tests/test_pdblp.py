@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from pandas.util.testing import assert_frame_equal, assert_index_equal
 from pdblp import pdblp
+import blpapi
 import os
 
 
@@ -434,6 +435,26 @@ def test_context_manager(port, host):
     )
     df_expect.index.names = ["date"]
     assert_frame_equal(df, df_expect)
+
+
+@ifbbg
+def test_context_manager_passed_session(port, host):
+    sopts = blpapi.SessionOptions()
+    sopts.setServerHost(host)
+    sopts.setServerPort(port)
+    session = blpapi.Session(sopts)
+    session.start()
+    session.nextEvent(1000)
+    session.nextEvent(1000)
+    with pdblp.bopen(session=session) as bb:  # NOQA
+        pass
+
+
+@ifbbg
+def test_multi_start(port, host, timeout):
+    con = pdblp.BCon(host=host, port=port, timeout=timeout)
+    con.start()
+    con.start()
 
 
 @ifbbg

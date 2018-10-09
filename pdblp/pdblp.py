@@ -133,12 +133,15 @@ class BCon(object):
                 raise RuntimeError("Expected a SESSION_STATUS event but "
                                    "received a %s" % ev_name)
         else:
-            logger.warning("Failed to start session")
-            raise ConnectionError("Could not start blpapi.Session")
-        self.init_services()
+            ev = self._session.nextEvent(self.timeout)
+            if ev.eventType() == blpapi.Event.SESSION_STATUS:
+                for msg in ev:
+                    logger.warning("Message Received:\n%s" % msg)
+                raise ConnectionError("Could not start blpapi.Session")
+        self._init_services()
         return self
 
-    def init_services(self):
+    def _init_services(self):
         """
         Initialize blpapi.Session services
         """
