@@ -86,6 +86,12 @@ class BCon(object):
             sessionOptions.setServerHost(host)
             sessionOptions.setServerPort(port)
             session = blpapi.Session(sessionOptions)
+        else:
+            ev = session.nextEvent(timeout)
+            if ev.eventType() != blpapi.Event.TIMEOUT:
+                raise ValueError("Flush event queue of blpapi.Session prior "
+                                 "to instantiation")
+
         self.timeout = timeout
         self._session = session
         self._identity = identity

@@ -458,6 +458,17 @@ def test_multi_start(port, host, timeout):
 
 
 @ifbbg
+def test_non_empty_session_queue(port, host):
+    sopts = blpapi.SessionOptions()
+    sopts.setServerHost(host)
+    sopts.setServerPort(port)
+    session = blpapi.Session(sopts)
+    session.start()
+    with pytest.raises(ValueError):
+        pdblp.BCon(session=session)
+
+
+@ifbbg
 def test_bsrch(con):
     df = con.bsrch("COMDTY:VESSEL").head()
     df_expect = pd.DataFrame(["IMO1000019 Index", "LADY K II",
