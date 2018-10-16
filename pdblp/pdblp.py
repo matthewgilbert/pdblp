@@ -755,15 +755,15 @@ class BCon(object):
         query: string
             A character string representing the desired query. Example "IBM"
         max_results: int
-            Maximum number of results to return. Default 10. 
+            Maximum number of results to return. Default 10.
         yk_filter: string
             A character string respresenting a Bloomberg yellow-key to limit
-            search results to. Valid values are: CMDT, EQTY, MUNI, 
+            search results to. Valid values are: CMDT, EQTY, MUNI,
             PRFD, CLNT, MMKT, GOVT, CORP, INDX, CURR, MTGE. Default NONE.
 
         Returns
         -------
-        data: list
+        data: pandas.DataFrame
             List of bloomberg tickers from the SECF function
         """
         logger = _get_logger(self.debug)
@@ -780,9 +780,9 @@ class BCon(object):
                 ticker = ticker.replace('<', ' ').replace('>', '').upper()
                 descr = r.getElementAsString("description")
                 if not descr.endswith('(Multiple Matches)'):
-                    data.append(ticker)
-        return data
-        
+                    data.append((ticker, descr))
+        return pd.DataFrame(data, columns=['ticker', 'description'])
+
     def stop(self):
         """
         Close the blp session

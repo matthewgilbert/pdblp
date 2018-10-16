@@ -477,6 +477,18 @@ def test_bsrch(con):
     assert_frame_equal(df, df_expect)
 
 
+@ifbbg
+def test_secf(con):
+    df = con.secf(query="IBM",
+                  yk_filter="EQTY",
+                  max_results=1)
+    df_expect = pd.DataFrame(
+        {"ticker": ["IBM US EQUITY"],
+         "description": ["International Business Machines Corp (U.S.)"]}
+    )
+    assert_frame_equal(df, df_expect)
+
+
 def test_connection_error(port):
     con = pdblp.BCon(port=port+1)
     with pytest.raises(ConnectionError):
