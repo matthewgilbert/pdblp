@@ -9,12 +9,12 @@ _RESPONSE_TYPES = [blpapi.Event.RESPONSE, blpapi.Event.PARTIAL_RESPONSE]
 
 # partial lookup table for events used from blpapi.Event
 _EVENT_DICT = {
-              2: 'SESSION_STATUS',
-              5: 'RESPONSE',
-              6: 'PARTIAL_RESPONSE',
-              9: 'SERVICE_STATUS',
-              10: 'TIMEOUT',
-              15: 'REQUEST'
+              blpapi.Event.SESSION_STATUS: 'SESSION_STATUS',
+              blpapi.Event.RESPONSE: 'RESPONSE',
+              blpapi.Event.PARTIAL_RESPONSE: 'PARTIAL_RESPONSE',
+              blpapi.Event.SERVICE_STATUS: 'SERVICE_STATUS',
+              blpapi.Event.TIMEOUT: 'TIMEOUT',
+              blpapi.Event.REQUEST: 'REQUEST'
 }
 
 
