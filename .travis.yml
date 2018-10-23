@@ -5,12 +5,13 @@ python:
    - "3.4"
    - "3.5"
    - "3.6"
-# fix for https://github.com/travis-ci/travis-ci/issues/9815
-matrix:
-  include:
-    - python: 3.7
-      dist: xenial
-      sudo: true
+# blpapi for 3.7 not yet supported
+# # fix for https://github.com/travis-ci/travis-ci/issues/9815
+# matrix:
+#   include:
+#     - python: 3.7
+#       dist: xenial
+#       sudo: true
 install:
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
@@ -30,9 +31,8 @@ install:
 
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION pip flake8
-    pyparsing pytest conda-build anaconda-client conda-verify
-  - conda install -q -n test-environment -c dsm blpapi
+  - conda create -q -n test-environment -c conda-forge python=$TRAVIS_PYTHON_VERSION pip flake8
+    pyparsing pytest conda-build anaconda-client conda-verify blpapi
 
   - source activate test-environment
   - python setup.py install
@@ -41,12 +41,12 @@ install:
 script:
   - flake8 pdblp
   - pytest pdblp/tests -v --offline
-  - if [ $TRAVIS_PYTHON_VERSION != 3.5]; then conda-build --no-anaconda-upload .; fi
+  - if [ "$TRAVIS_PYTHON_VERSION" != "3.5" ]; then conda-build --no-anaconda-upload .; fi
 
 after_success:
-  - if [[ $TRAVIS_TAG && $TRAVIS_PYTHON_VERSION != 3.5]];
+  - if [[ "$TRAVIS_TAG" && "$TRAVIS_PYTHON_VERSION" != "3.5" ]];
     then echo "Uploading $(conda build . --output) to anaconda cloud"; fi
-  - if [[ $TRAVIS_TAG && $TRAVIS_PYTHON_VERSION != 3.5]];
+  - if [[ "$TRAVIS_TAG" && "$TRAVIS_PYTHON_VERSION" != "3.5" ]];
     then anaconda -t $CONDA_UPLOAD_TOKEN upload $(conda build . --output); fi
 
 notifications:
@@ -63,4 +63,4 @@ deploy:
     distributions: sdist bdist_wheel
     repo: matthewgilbert/pdblp
     branch: master
-    condition: $TRAVIS_PYTHON_VERSION == 3.7
+    condition: $TRAVIS_PYTHON_VERSION == 3.6
