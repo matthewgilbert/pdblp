@@ -39,14 +39,14 @@ pip install -e pdblp
 ```
 
 `blpapi` can be installed directly from the above link or you can install from
-the conda channel dsm into an environment, e.g.
+the `conda-forge` channel on Anaconda, e.g.
 
 ```
-conda install -n py36 -c dsm blpapi
+conda install -n blp_env -c conda-forge blpapi
 ```
 
 If going this route make sure there is a build available for your version of
-python https://anaconda.org/dsm/blpapi/files
+python https://anaconda.org/conda-forge/blpapi/files
 
 If you are getting `'GLIBCXX_3.4.21' not found` error when attempting to import
 `blpapi`, the following appears to resolve this issue.
