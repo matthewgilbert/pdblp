@@ -230,7 +230,7 @@ def test_bdib(con):
     df = con.bdib('SPY US Equity', ts1, ts2, event_type="BID", interval=10)
 
     ts2e = prev_busday.strftime("%Y-%m-%d") + "T10:20:00"
-    idx_exp = pd.date_range(ts1, ts2e, periods=3)
+    idx_exp = pd.date_range(ts1, ts2e, periods=3, name="time")
     col_exp = pd.Index(["open", "high", "low", "close", "volume", "numEvents"])
 
     assert_index_equal(df.index, idx_exp)

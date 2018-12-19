@@ -1,3 +1,5 @@
+import pytest
+
 from pdblp import parser
 
 
@@ -663,6 +665,125 @@ def test_historical_data_response_nan():
                     }
                   ]
                   }
+                 }
+                }]
+    assert res == exp_res
+
+
+@pytest.mark.xfail
+def test_intradaybar_data_response():
+    test_str = """
+    IntradayBarResponse = {
+        barData = {
+            eidData[] = {
+            }
+            barTickData[] = {
+                barTickData = {
+                    time = 2018-12-11T10:55:00.000
+                    open = 1.339800
+                    high = 1.339900
+                    low = 1.339700
+                    close = 1.339900
+                    volume = 0
+                    numEvents = 1704
+                    value = 0.000000
+                }
+                barTickData = {
+                    time = 2018-12-11T11:00:00.000
+                    open = 1.339900
+                    high = 1.340000
+                    low = 1.339700
+                    close = 1.339800
+                    volume = 0
+                    numEvents = 2100
+                    value = 0.000000
+                }
+            }
+        }
+    }
+    """
+    res = parser.to_dict_list(test_str)
+
+    exp_res = [{"IntradayBarResponse":
+                {"barData":
+                 {"eidData": [],
+                  "barTickData":
+                  [
+                   {"barTickData": {"time": "2018-12-11T10:55:00.000",
+                                    "open": 1.3398,
+                                    "high": 1.3399,
+                                    "low": 1.3397,
+                                    "close": 1.3399,
+                                    "volume": 0,
+                                    "numEvents": 1704,
+                                    "value": 0}
+                    },
+                   {"barTickData": {"time": "2018-12-11T11:00:00.000",
+                                    "open": 1.3399,
+                                    "high": 1.34,
+                                    "low": 1.3397,
+                                    "close": 1.3398,
+                                    "volume": 0,
+                                    "numEvents": 2100,
+                                    "value": 0}
+                    }
+                  ]
+                  }
+                 }
+                }]
+    assert res == exp_res
+
+
+@pytest.mark.xfail
+def test_grid_response():
+    test_str = """
+    GridResponse = {
+        NumOfFields = 0
+        NumOfRecords = 2000
+        ColumnTitles[] = {
+            "TICKER", "VESSEL NAME"
+        }
+        DataRecords[] = {
+            DataRecords = {
+                DataFields[] = {
+                    DataFields = {
+                        StringValue = "IMO1000019 Index"
+                    }
+                    DataFields = {
+                        StringValue = "LADY K II"
+                    }
+                }
+            }
+            DataRecords = {
+                DataFields[] = {
+                    DataFields = {
+                        StringValue = "IMO6919837 Index"
+                    }
+                    DataFields = {
+                        StringValue = "CAERUS"
+                    }
+                }
+            }
+        }
+        ReachMax = false
+        SequenceNumber = 0
+    }
+    """
+    res = parser.to_dict_list(test_str)
+
+    exp_res = [{"GridResponse":
+                {"NumOfFields": 0,
+                 "NumOfRecords": 2000,
+                 "ColumnsTitles": ["TICKER", "VESSEL NAME"],
+                 "DataRecords":
+                  [
+                   {"DataRecords": {'DataFields': [{'DatFields': {"StringValue": "IMO1000019 Index"}},  # NOQA
+                                                   {'DatFields': {"StringValue": "LADY K II"}}]}},  # NOQA
+                   {"DataRecords": {'DataFields': [{'DatFields': {"StringValue": "IMO6919837 Index"}},  # NOQA
+                                                   {'DatFields': {"StringValue": "CAERUS"}}]}}  # NOQA
+                  ],
+                  "ReachMax": False,
+                  "SequenceNumber": 0
                  }
                 }]
     assert res == exp_res

@@ -4,7 +4,7 @@ help:
 	@echo ' Usage:                                                '
 	@echo '     make lint          flake8 the codebase            '
 	@echo '     make test          run unit tests                 '
-	@echo '     make test_parse    run unit tests for parsing only'
+	@echo '     make test_offline  run unit tests for parsing only'
 
 lint:
 	flake8 ./pdblp

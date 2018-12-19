@@ -1,9 +1,10 @@
-import blpapi
 import logging
-import pandas as pd
-import numpy as np
 import contextlib
-from collections import defaultdict
+
+import blpapi
+import numpy as np
+import pandas as pd
+
 
 _RESPONSE_TYPES = [blpapi.Event.RESPONSE, blpapi.Event.PARTIAL_RESPONSE]
 
@@ -21,8 +22,8 @@ _EVENT_DICT = {
 def _get_logger(debug):
     logger = logging.getLogger(__name__)
     if (logger.parent is not None) and logger.parent.hasHandlers() and debug:
-        logger.warning("'pdblp.BCon.debug=True' is ignored when user "
-                       "specifies logging event handlers")
+        logger.warning('"pdblp.BCon.debug=True" is ignored when user '
+                       'specifies logging event handlers')
     else:
         if not logger.handlers:
             formatter = logging.Formatter('%(name)s:%(levelname)s:%(message)s')
@@ -89,8 +90,8 @@ class BCon(object):
         else:
             ev = session.nextEvent(timeout)
             if ev.eventType() != blpapi.Event.TIMEOUT:
-                raise ValueError("Flush event queue of blpapi.Session prior "
-                                 "to instantiation")
+                raise ValueError('Flush event queue of blpapi.Session prior '
+                                 'to instantiation')
 
         self.timeout = timeout
         self._session = session
@@ -124,26 +125,26 @@ class BCon(object):
         if started:
             ev = self._session.nextEvent()
             ev_name = _EVENT_DICT[ev.eventType()]
-            logger.info("Event Type: %s" % ev_name)
+            logger.info('Event Type: {!r}'.format(ev_name))
             for msg in ev:
-                logger.info("Message Received:\n%s" % msg)
+                logger.info('Message Received:\n{}'.format(msg))
             if ev.eventType() != blpapi.Event.SESSION_STATUS:
-                raise RuntimeError("Expected a SESSION_STATUS event but "
-                                   "received a %s" % ev_name)
+                raise RuntimeError('Expected a "SESSION_STATUS" event but '
+                                   'received a {!r}'.format(ev_name))
             ev = self._session.nextEvent()
             ev_name = _EVENT_DICT[ev.eventType()]
-            logger.info("Event Type: %s" % ev_name)
+            logger.info('Event Type: {!r}'.format(ev_name))
             for msg in ev:
-                logger.info("Message Received:\n%s" % msg)
+                logger.info('Message Received:\n{}'.format(msg))
             if ev.eventType() != blpapi.Event.SESSION_STATUS:
-                raise RuntimeError("Expected a SESSION_STATUS event but "
-                                   "received a %s" % ev_name)
+                raise RuntimeError('Expected a "SESSION_STATUS" event but '
+                                   'received a {!r}'.format(ev_name))
         else:
             ev = self._session.nextEvent(self.timeout)
             if ev.eventType() == blpapi.Event.SESSION_STATUS:
                 for msg in ev:
-                    logger.warning("Message Received:\n%s" % msg)
-                raise ConnectionError("Could not start blpapi.Session")
+                    logger.warning('Message Received:\n{}'.format(msg))
+                raise ConnectionError('Could not start blpapi.Session')
         self._init_services()
         return self
 
@@ -154,33 +155,33 @@ class BCon(object):
         logger = _get_logger(self.debug)
 
         # flush event queue in defensive way
-        opened = self._session.openService("//blp/refdata")
+        opened = self._session.openService('//blp/refdata')
         ev = self._session.nextEvent()
         ev_name = _EVENT_DICT[ev.eventType()]
-        logger.info("Event Type: %s" % ev_name)
+        logger.info('Event Type: {!r}'.format(ev_name))
         for msg in ev:
-            logger.info("Message Received:\n%s" % msg)
+            logger.info('Message Received:\n{}'.format(msg))
         if ev.eventType() != blpapi.Event.SERVICE_STATUS:
-            raise RuntimeError("Expected a SERVICE_STATUS event but "
-                               "received a %s" % ev_name)
+            raise RuntimeError('Expected a "SERVICE_STATUS" event but '
+                               'received a {!r}'.format(ev_name))
         if not opened:
-            logger.warning("Failed to open //blp/refdata")
-            raise ConnectionError("Could not open a //blp/refdata service")
-        self.refDataService = self._session.getService("//blp/refdata")
+            logger.warning('Failed to open //blp/refdata')
+            raise ConnectionError('Could not open a //blp/refdata service')
+        self.refDataService = self._session.getService('//blp/refdata')
 
-        opened = self._session.openService("//blp/exrsvc")
+        opened = self._session.openService('//blp/exrsvc')
         ev = self._session.nextEvent()
         ev_name = _EVENT_DICT[ev.eventType()]
-        logger.info("Event Type: %s" % ev_name)
+        logger.info('Event Type: {!r}'.format(ev_name))
         for msg in ev:
-            logger.info("Message Received:\n%s" % msg)
+            logger.info('Message Received:\n{}'.format(msg))
         if ev.eventType() != blpapi.Event.SERVICE_STATUS:
-            raise RuntimeError("Expected a SERVICE_STATUS event but "
-                               "received a %s" % ev_name)
+            raise RuntimeError('Expected a "SERVICE_STATUS" event but '
+                               'received a {!r}'.format(ev_name))
         if not opened:
-            logger.warning("Failed to open //blp/exrsvc")
-            raise ConnectionError("Could not open a //blp/exrsvc service")
-        self.exrService = self._session.getService("//blp/exrsvc")
+            logger.warning('Failed to open //blp/exrsvc')
+            raise ConnectionError('Could not open a //blp/exrsvc service')
+        self.exrService = self._session.getService('//blp/exrsvc')
 
         return self
 
@@ -191,30 +192,33 @@ class BCon(object):
 
         request = self.refDataService.createRequest(rtype)
         for t in tickers:
-            request.getElement("securities").appendValue(t)
+            request.getElement('securities').appendValue(t)
         for f in flds:
-            request.getElement("fields").appendValue(f)
+            request.getElement('fields').appendValue(f)
         for name, val in setvals:
             request.set(name, val)
 
-        overrides = request.getElement("overrides")
+        overrides = request.getElement('overrides')
         for ovrd_fld, ovrd_val in ovrds:
             ovrd = overrides.appendElement()
-            ovrd.setElement("fieldId", ovrd_fld)
-            ovrd.setElement("value", ovrd_val)
+            ovrd.setElement('fieldId', ovrd_fld)
+            ovrd.setElement('value', ovrd_val)
 
         return request
 
-    def _receive_events(self, sent_events=1):
+    def _receive_events(self, sent_events=1, to_dict=True):
         logger = _get_logger(self.debug)
         while True:
             ev = self._session.nextEvent(self.timeout)
             ev_name = _EVENT_DICT[ev.eventType()]
-            logger.info("Event Type: %s" % ev_name)
+            logger.info('Event Type: {!r}'.format(ev_name))
             if ev.eventType() in _RESPONSE_TYPES:
                 for msg in ev:
-                    logger.info("Message Received:\n%s" % msg)
-                    yield msg
+                    logger.info('Message Received:\n{}'.format(msg))
+                    if to_dict:
+                        yield message_to_dict(msg)
+                    else:
+                        yield msg
 
             # deals with multi sends using CorrelationIds
             if ev.eventType() == blpapi.Event.RESPONSE:
@@ -223,14 +227,15 @@ class BCon(object):
                     break
             # guard against unknown returned events
             elif ev.eventType() not in _RESPONSE_TYPES:
-                logger.warning("Unexpected Event Type: %s" % ev_name)
+                logger.warning('Unexpected Event Type: {!r}'.format(ev_name))
                 for msg in ev:
-                    logger.warning("Message Received:\n%s" % msg)
+                    logger.warning('Message Received:\n{}'.format(msg))
                 if ev.eventType() == blpapi.Event.TIMEOUT:
-                    raise RuntimeError("Timeout, increase BCon.timeout "
-                                       "attribute")
+                    raise RuntimeError('Timeout, increase BCon.timeout '
+                                       'attribute')
                 else:
-                    raise RuntimeError("Unexpected Event Type: %s" % ev_name)
+                    raise RuntimeError('Unexpected Event Type: {!r}'
+                                       .format(ev_name))
 
     def bdh(self, tickers, flds, start_date, end_date, elms=None,
             ovrds=None, longdata=False):
@@ -269,8 +274,8 @@ class BCon(object):
         data = self._bdh_list(tickers, flds, start_date, end_date,
                               elms, ovrds)
 
-        df = pd.DataFrame(data, columns=["date", "ticker", "field", "value"])
-        df.loc[:, "date"] = pd.to_datetime(df.loc[:, "date"])
+        df = pd.DataFrame(data, columns=['date', 'ticker', 'field', 'value'])
+        df.loc[:, 'date'] = pd.to_datetime(df.loc[:, 'date'])
         if not longdata:
             cols = ['ticker', 'field']
             df = df.set_index(['date'] + cols).unstack(cols)
@@ -287,37 +292,31 @@ class BCon(object):
             flds = [flds]
 
         setvals = elms
-        setvals.append(("startDate", start_date))
-        setvals.append(("endDate", end_date))
+        setvals.append(('startDate', start_date))
+        setvals.append(('endDate', end_date))
 
-        request = self._create_req("HistoricalDataRequest", tickers, flds,
+        request = self._create_req('HistoricalDataRequest', tickers, flds,
                                    ovrds, setvals)
-        logger.info("Sending Request:\n%s" % request)
+        logger.info('Sending Request:\n{}'.format(request))
         # Send the request
         self._session.sendRequest(request, identity=self._identity)
         data = []
         # Process received events
         for msg in self._receive_events():
-            has_security_error = (msg.getElement('securityData')
-                                  .hasElement('securityError'))
-            has_field_exception = (msg.getElement('securityData')
-                                   .getElement("fieldExceptions")
-                                   .numValues() > 0)
+            d = msg['element']['HistoricalDataResponse']
+            has_security_error = 'securityError' in d['securityData']
+            has_field_exception = len(d['securityData']['fieldExceptions']) > 0
             if has_security_error or has_field_exception:
-                raise ValueError(msg)
-            ticker = (msg.getElement('securityData')
-                      .getElement('security').getValue())
-            fldDatas = (msg.getElement('securityData')
-                        .getElement('fieldData'))
-            for fd in fldDatas.values():
-                dt = fd.getElement('date').getValue()
-                for element in fd.elements():
-                    fname = str(element.name())
-                    if fname == "date":
+                raise ValueError(data)
+            ticker = d['securityData']['security']
+            fldDatas = d['securityData']['fieldData']
+            for fd in fldDatas:
+                for fname, value in fd['fieldData'].items():
+                    if fname == 'date':
                         continue
-                    val = element.getValue()
-                    data.append((dt, ticker, fname, val))
-
+                    data.append(
+                        (fd['fieldData']['date'], ticker, fname, value)
+                    )
         return data
 
     def ref(self, tickers, flds, ovrds=None):
@@ -358,13 +357,13 @@ class BCon(object):
             tickers = [tickers]
         if type(flds) is not list:
             flds = [flds]
-        request = self._create_req("ReferenceDataRequest", tickers, flds,
+        request = self._create_req('ReferenceDataRequest', tickers, flds,
                                    ovrds, [])
-        logger.info("Sending Request:\n%s" % request)
+        logger.info('Sending Request:\n{}'.format(request))
         self._session.sendRequest(request, identity=self._identity)
         data = self._parse_ref(flds)
         data = pd.DataFrame(data)
-        data.columns = ["ticker", "field", "value"]
+        data.columns = ['ticker', 'field', 'value']
         return data
 
     def _parse_ref(self, flds, keep_corrId=False, sent_events=1):
@@ -372,39 +371,38 @@ class BCon(object):
         # Process received events
         for msg in self._receive_events(sent_events):
             if keep_corrId:
-                corrId = [msg.correlationIds()[0].value()]
+                corrId = msg['correlationIds']
             else:
                 corrId = []
-            secDataArray = msg.getElement('securityData')
-            for secDataElm in secDataArray.values():
-                ticker = secDataElm.getElement("security").getValue()
-                if secDataElm.hasElement("securityError"):
-                    raise ValueError("Unknow security %s" % ticker)
-                self._check_fieldExceptions(secDataElm.getElement("fieldExceptions"))  # NOQA
-                fieldData = secDataElm.getElement('fieldData')
-                for j in range(len(flds)):
-                    fld = flds[j]
+            d = msg['element']['ReferenceDataResponse']
+            for security_data_dict in d:
+                secData = security_data_dict['securityData']
+                ticker = secData['security']
+                if 'securityError' in secData:
+                    raise ValueError('Unknow security {!r}'.format(ticker))
+                self._check_fieldExceptions(secData['fieldExceptions'])
+                fieldData = secData['fieldData']['fieldData']
+                for fld in flds:
                     # avoid returning nested bbg objects, fail instead
                     # since user should use bulkref()
-                    if fieldData.hasElement(fld):
-                        if fieldData.getElement(fld).isArray():
-                            raise ValueError("Field '{0}' returns bulk "
-                                             "reference data which is not "
-                                             "supported".format(fld))
+                    if (fld in fieldData) and isinstance(fieldData[fld], list):
+                        raise ValueError('Field {!r} returns bulk reference '
+                                         'data which is not supported'
+                                         .format(fld))
                     # this is a slight hack but if a fieldData response
                     # does not have the element fld and this is not a bad
                     # field (which is checked above) then the assumption is
                     # that this is a not applicable field, thus set NaN
                     # see https://github.com/matthewgilbert/pdblp/issues/13
-                    if not fieldData.hasElement(fld):
-                        dataj = [ticker, fld, np.NaN]
-                        dataj.extend(corrId)
-                        data.append(dataj)
+                    if fld not in fieldData:
+                        datum = [ticker, fld, np.NaN]
+                        datum.extend(corrId)
+                        data.append(datum)
                     else:
-                        val = fieldData.getElement(fld).getValue()
-                        dataj = [ticker, fld, val]
-                        dataj.extend(corrId)
-                        data.append(dataj)
+                        val = fieldData[fld]
+                        datum = [ticker, fld, val]
+                        datum.extend(corrId)
+                        data.append(datum)
         return data
 
     def bulkref(self, tickers, flds, ovrds=None):
@@ -461,13 +459,13 @@ class BCon(object):
         if type(flds) is not list:
             flds = [flds]
         setvals = []
-        request = self._create_req("ReferenceDataRequest", tickers, flds,
+        request = self._create_req('ReferenceDataRequest', tickers, flds,
                                    ovrds, setvals)
-        logger.info("Sending Request:\n%s" % request)
+        logger.info('Sending Request:\n{}'.format(request))
         self._session.sendRequest(request, identity=self._identity)
         data = self._parse_bulkref(flds)
         data = pd.DataFrame(data)
-        data.columns = ["ticker", "field", "name", "value", "position"]
+        data.columns = ['ticker', 'field', 'name', 'value', 'position']
         return data
 
     def _parse_bulkref(self, flds, keep_corrId=False, sent_events=1):
@@ -475,54 +473,45 @@ class BCon(object):
         # Process received events
         for msg in self._receive_events(sent_events):
             if keep_corrId:
-                corrId = [msg.correlationIds()[0].value()]
+                corrId = msg['correlationIds']
             else:
                 corrId = []
-            secDataArray = msg.getElement('securityData')
-            for secDataElm in secDataArray.values():
-                ticker = secDataElm.getElement("security").getValue()
-                if secDataElm.hasElement("securityError"):
-                    raise ValueError("Unknow security %s" % ticker)
-                self._check_fieldExceptions(secDataElm.getElement("fieldExceptions"))  # NOQA
-                fieldData = secDataElm.getElement('fieldData')
-                for j in range(len(flds)):
-                    fld = flds[j]
-                    if fieldData.hasElement(fld):
-                        # fail coherently instead of parsing downstream
-                        if not fieldData.getElement(fld).isArray():
-                            raise ValueError("Cannot parse field '{0}' "
-                                             "which is not bulk reference "
-                                             "data".format(fld))
-                        arrayValues = fieldData.getElement(fld).values()
-                        for i, field in enumerate(arrayValues):
-                            for elm in field.elements():
-                                value_name = str(elm.name())
-                                if not elm.isNull():
-                                    val = elm.getValue()
-                                else:
-                                    val = np.NaN
-                                dataj = [ticker, fld, value_name, val, i]
-                                dataj.extend(corrId)
-                                data.append(dataj)
+            d = msg['element']['ReferenceDataResponse']
+            for security_data_dict in d:
+                secData = security_data_dict['securityData']
+                ticker = secData['security']
+                if 'securityError' in secData:
+                    raise ValueError('Unknow security {!r}'.format(ticker))
+                self._check_fieldExceptions(secData['fieldExceptions'])
+                fieldData = secData['fieldData']['fieldData']
+                for fld in flds:
+                    # fail coherently instead of while parsing downstream
+                    if (fld in fieldData) and not isinstance(fieldData[fld], list): # NOQA
+                        raise ValueError('Cannot parse field {!r} which is '
+                                         'not bulk reference data'.format(fld))
+                    elif fld in fieldData:
+                        for i, data_dict in enumerate(fieldData[fld]):
+                            for name, value in data_dict[fld].items():
+                                datum = [ticker, fld, name, value, i]
+                                datum.extend(corrId)
+                                data.append(datum)
                     else:  # field is empty or NOT_APPLICABLE_TO_REF_DATA
-                        dataj = [ticker, fld, np.NaN, np.NaN, np.NaN]
-                        dataj.extend(corrId)
-                        data.append(dataj)
+                        datum = [ticker, fld, np.NaN, np.NaN, np.NaN]
+                        datum.extend(corrId)
+                        data.append(datum)
         return data
 
     @staticmethod
-    def _check_fieldExceptions(fieldExceptions):
-        # iterate over an array of fieldExceptions and check for a
+    def _check_fieldExceptions(field_exceptions):
+        # iterate over an array of field_exceptions and check for a
         # INVALID_FIELD error
-
-        INVALID_FIELD = 'INVALID_FIELD'
-        for fe in fieldExceptions.values():
-            category = fe.getElement("errorInfo").getElement("subcategory").getValue()  # NOQA
-            if category == INVALID_FIELD:
-                raise ValueError("%s: %s" % (fe.getElement("fieldId").getValue(), category))  # NOQA
+        for fe_dict in field_exceptions:
+            fe = fe_dict['fieldExceptions']
+            if fe['errorInfo']['errorInfo']['subcategory'] == 'INVALID_FIELD':
+                raise ValueError('{}: INVALID_FIELD'.format(fe['fieldId']))
 
     def ref_hist(self, tickers, flds, dates, ovrds=None,
-                 date_field="REFERENCE_DATE"):
+                 date_field='REFERENCE_DATE'):
         """
         Make iterative calls to ref() and create a long DataFrame with columns
         [date, ticker, field, value] where each date corresponds to overriding
@@ -570,7 +559,7 @@ class BCon(object):
         return data
 
     def bulkref_hist(self, tickers, flds, dates, ovrds=None,
-                     date_field="REFERENCE_DATE"):
+                     date_field='REFERENCE_DATE'):
         """
         Make iterative calls to bulkref() and create a long DataFrame with
         columns [date, ticker, field, name, value, position] where each date
@@ -621,20 +610,20 @@ class BCon(object):
     def _send_hist(self, tickers, flds, dates, date_field, ovrds):
         logger = _get_logger(self.debug)
         setvals = []
-        request = self._create_req("ReferenceDataRequest", tickers, flds,
+        request = self._create_req('ReferenceDataRequest', tickers, flds,
                                    ovrds, setvals)
 
-        overrides = request.getElement("overrides")
+        overrides = request.getElement('overrides')
         if len(dates) == 0:
-            raise ValueError("dates must by non empty")
+            raise ValueError('dates must by non empty')
         ovrd = overrides.appendElement()
         for dt in dates:
-            ovrd.setElement("fieldId", date_field)
-            ovrd.setElement("value", dt)
+            ovrd.setElement('fieldId', date_field)
+            ovrd.setElement('value', dt)
             # CorrelationID used to keep track of which response coincides with
             # which request
             cid = blpapi.CorrelationId(dt)
-            logger.info("Sending Request:\n%s" % request)
+            logger.info('Sending Request:\n{}'.format(request))
             self._session.sendRequest(request, identity=self._identity,
                                       correlationId=cid)
 
@@ -670,35 +659,26 @@ class BCon(object):
             pass
 
         # Create and fill the request for the historical data
-        request = self.refDataService.createRequest("IntradayBarRequest")
-        request.set("security", ticker)
-        request.set("eventType", event_type)
-        request.set("interval", interval)  # bar interval in minutes
-        request.set("startDateTime", start_datetime)
-        request.set("endDateTime", end_datetime)
+        request = self.refDataService.createRequest('IntradayBarRequest')
+        request.set('security', ticker)
+        request.set('eventType', event_type)
+        request.set('interval', interval)  # bar interval in minutes
+        request.set('startDateTime', start_datetime)
+        request.set('endDateTime', end_datetime)
         for name, val in elms:
             request.set(name, val)
 
-        logger.info("Sending Request:\n%s" % request)
+        logger.info('Sending Request:\n{}'.format(request))
         # Send the request
         self._session.sendRequest(request, identity=self._identity)
-        # defaultdict - later convert to pandas
-        data = defaultdict(dict)
         # Process received events
+        data = []
         flds = ['open', 'high', 'low', 'close', 'volume', 'numEvents']
         for msg in self._receive_events():
-            barTick = (msg.getElement('barData')
-                       .getElement('barTickData'))
-            for i in range(barTick.numValues()):
-                for fld in flds:
-                    dt = barTick.getValue(i).getElement(0).getValue()
-                    val = (barTick.getValue(i).getElement(fld).getValue())
-                    data[(fld)][dt] = val
-
-        data = pd.DataFrame(data)
-        if not data.empty:
-            data.index = pd.to_datetime(data.index)
-            data = data[flds]
+            d = msg['element']['IntradayBarResponse']
+            for bar in d['barData']['barTickData']:
+                data.append(bar['barTickData'])
+        data = pd.DataFrame(data).set_index('time').sort_index().loc[:, flds]
         return data
 
     def bsrch(self, domain):
@@ -720,12 +700,12 @@ class BCon(object):
             List of bloomberg tickers from the BSRCH
         """
         logger = _get_logger(self.debug)
-        request = self.exrService.createRequest("ExcelGetGridRequest")
-        request.set("Domain", domain)
-        logger.info("Sending Request:\n%s" % request)
+        request = self.exrService.createRequest('ExcelGetGridRequest')
+        request.set('Domain', domain)
+        logger.info('Sending Request:\n{}'.format(request))
         self._session.sendRequest(request, identity=self._identity)
         data = []
-        for msg in self._receive_events():
+        for msg in self._receive_events(to_dict=False):
             for v in msg.getElement("DataRecords").values():
                 for f in v.getElement("DataFields").values():
                     data.append(f.getElementAsString("StringValue"))
@@ -736,3 +716,33 @@ class BCon(object):
         Close the blp session
         """
         self._session.stop()
+
+
+def _element_to_dict(elem):
+    if isinstance(elem, str):
+        return elem
+    dtype = elem.datatype()
+    if dtype == blpapi.DataType.CHOICE:
+        return {str(elem.name()): _element_to_dict(elem.getChoice())}
+    elif elem.isArray():
+        return [_element_to_dict(v) for v in elem.values()]
+    elif dtype == blpapi.DataType.SEQUENCE:
+        return {str(elem.name()): {str(e.name()): _element_to_dict(e) for e in elem.elements()}}  # NOQA
+    else:
+        if elem.isNull():
+            value = None
+        else:
+            try:
+                value = elem.getValue()
+            except:
+                value = None
+        return value
+
+
+def message_to_dict(msg):
+    return {
+        'correlationIds': [cid.value() for cid in msg.correlationIds()],
+        'messageType': "{}".format(msg.messageType()),
+        'topicName': msg.topicName(),
+        'element': _element_to_dict(msg.asElement())
+    }
