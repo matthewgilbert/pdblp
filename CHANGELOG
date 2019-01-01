@@ -46,3 +46,10 @@ file for building docs
 - Refactor event handling and logging into _receive_events()
 - Remove restart() method, see issue #46
 - Allow constructor to take a blpapi.Session and blpapi.Identity, for SAPI
+
+# pdblp 0.1.8
+
+- Fix bopen() to work with passed session
+- Refactor pdblp to use blpapi.Messages parsed into dicts
+- Remove conda package building
+- Remove testing for python 3.5 and 3.4
