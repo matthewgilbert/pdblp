@@ -734,7 +734,7 @@ def _element_to_dict(elem):
         else:
             try:
                 value = elem.getValue()
-            except:
+            except:  # NOQA
                 value = None
         return value
 
