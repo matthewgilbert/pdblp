@@ -82,3 +82,11 @@ make html
 and viewed in ./doc/_build. Before building this ensure that you are
 logged into a Bloomberg terminal as this is required for building many of the
 examples.
+
+## Citing `pdblp`
+
+If you make use of `pdblp` in publications, citations to this package would be
+appreciated. You can use the badge below to generate a DOI and reference text
+for the latest related version of pdblp.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2529925.svg)](https://doi.org/10.5281/zenodo.2529925)
