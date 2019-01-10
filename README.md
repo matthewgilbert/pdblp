@@ -31,6 +31,12 @@ You can install from PyPi using
 pip install pdblp
 ```
 
+or from conda-forge using
+
+```
+conda install -c conda-forge pdblp
+```
+
 or you can clone this repository and pip install the package, i.e.
 
 ```
