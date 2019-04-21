@@ -12,6 +12,14 @@ data and reference data. A simple set of examples is available
 The library borrows heavily from a similar package available
 [here](https://github.com/kyuni22/pybbg)
 
+## Questions
+
+`pdblp` simply wraps `blpapi` responses into `pandas` dataframes, general
+questions about `blpapi` **should not** be posted as issues. The best way to get
+support for `blpapi` is either from Bloomberg directly via the terminal or on
+Stack Overflow, using tag `blpapi` (and `pdblp` if it also relates to the `pdblp` 
+library).
+
 ## Requires
 
 `python 3.x`
