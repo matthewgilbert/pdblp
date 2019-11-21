@@ -281,9 +281,9 @@ def test_ref_one_ticker_one_field(con):
     assert_frame_equal(df, df_expect)
 
 
-@pytest.mark.parametrize("date", [("20161010",), ("2016-10-10",),
-                         ("2016/10/10",), ("10Jun2016"),
-                         (pd.datetime(2016, 6, 10),), (pd.Timestamp(2016, 6, 10),)])
+@pytest.mark.parametrize("date", ["20161010", "2016-10-10",
+                         "2016/10/10", "10Oct2016",
+                         pd.datetime(2016, 10, 10), pd.Timestamp(2016, 10, 10,)])
 @ifbbg
 def test_ref_one_ticker_one_field_override(con, date):
     df = con.ref('AUD Curncy', 'SETTLE_DT',
@@ -345,9 +345,9 @@ def test_ref_mixed_data_error(con):
 
 
 # BULKREF TESTS
-@pytest.mark.parametrize("date", [("20150530",), ("2015-05-30",),
-                         ("2015/05/30",), ("30May2015"),
-                         (pd.datetime(2015, 5, 30),), (pd.Timestamp(2015, 5, 30),)])
+@pytest.mark.parametrize("date", ["20150530", "2015-05-30",
+                         "2015/05/30", "30May2015",
+                         pd.datetime(2015, 5, 30), pd.Timestamp(2015, 5, 30)])
 @ifbbg
 def test_bulkref_one_ticker_one_field(con, data_path, date):
     df = con.bulkref('BCOM Index', 'INDX_MWEIGHT',
@@ -358,9 +358,9 @@ def test_bulkref_one_ticker_one_field(con, data_path, date):
     pivot_and_assert(df, df_expected)
 
 
-@pytest.mark.parametrize("date", [("20150530",), ("2015-05-30",),
-                         ("2015/05/30",), ("30May2015"),
-                         (pd.datetime(2015, 5, 30),), (pd.Timestamp(2015, 5, 30),)])
+@pytest.mark.parametrize("date", ["20150530", "2015-05-30",
+                         "2015/05/30", "30May2015",
+                         pd.datetime(2015, 5, 30), pd.Timestamp(2015, 5, 30)])
 @ifbbg
 def test_bulkref_two_ticker_one_field(con, data_path, date):
     df = con.bulkref(['BCOM Index', 'OEX Index'], 'INDX_MWEIGHT',
@@ -427,7 +427,7 @@ def test_bulkref_not_applicable_with_applicable_field_smoketest(con):
 def test_hist_ref_one_ticker_one_field_numeric(con, dates):
     df = con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", dates)
     df_expect = pd.DataFrame(
-        {"date": dates,
+        {"date": ["20160104", "20160105"],
          "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
          "field": ["DAYS_TO_MTY", "DAYS_TO_MTY"],
          "value": [33, 32]}
@@ -442,7 +442,7 @@ def test_hist_ref_one_ticker_one_field_numeric(con, dates):
 def test_hist_ref_one_ticker_one_field_non_numeric(con, dates):
     df = con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", dates)
     df_expect = pd.DataFrame(
-        {"date": dates,
+        {"date": ["20160104", "20160105"],
          "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
          "field": ["SETTLE_DT", "SETTLE_DT"],
          "value": 2 * [pd.datetime(2016, 2, 8).date()]}
@@ -479,8 +479,8 @@ def test_bulkhist_ref_with_alternative_reference_field(con, dates):
                          ("2015/06/29", "30Jun2015"),
                          (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))])
 @ifbbg
-def test_context_manager(port, host, start_date, end_date):
-    with pdblp.bopen(host=host, port=port) as bb:
+def test_context_manager(port, host, timeout, start_date, end_date):
+    with pdblp.bopen(host=host, port=port, timeout=timeout) as bb:
         df = bb.bdh('SPY US Equity', 'PX_LAST', start_date, end_date)
     midx = pd.MultiIndex(levels=[["SPY US Equity"], ["PX_LAST"]],
                          labels=[[0], [0]], names=["ticker", "field"])

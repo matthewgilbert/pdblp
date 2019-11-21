@@ -267,15 +267,9 @@ class BCon(object):
         start_date = f"{pd.to_datetime(start_date):%Y%m%d}"
         end_date = f"{pd.to_datetime(end_date):%Y%m%d}"
 
-        ovrds = [] if not ovrds else ovrds
+        ovrds = [] if not ovrds else [(field, _todate_greedy(date))
+                                      for (field, date) in ovrds]
         elms = [] if not elms else elms
-
-        def _todate_greedy(date):
-            try:
-                return f"{pd.to_datetime(date):%Y%m%d}"
-            except (ValueError, TypeError, OverflowError):
-                return date
-        ovrds = [_todate_greedy(ovrd) for ovrd in ovrds]
 
         elms = list(elms)
 
@@ -360,7 +354,8 @@ class BCon(object):
                 FUT_GEN_MONTH = "FGHJKMNQUVXZ"
         }
         """
-        ovrds = [] if not ovrds else ovrds
+        ovrds = [] if not ovrds else [(field, _todate_greedy(date))
+                                      for (field, date) in ovrds]
 
         logger = _get_logger(self.debug)
         if type(tickers) is not list:
@@ -461,7 +456,8 @@ class BCon(object):
             }
         }
         """
-        ovrds = [] if not ovrds else ovrds
+        ovrds = [] if not ovrds else [(field, _todate_greedy(date))
+                                      for (field, date) in ovrds]
 
         logger = _get_logger(self.debug)
         if type(tickers) is not list:
@@ -553,7 +549,8 @@ class BCon(object):
 
         """
         dates = [f"{date:%Y%m%d}" for date in pd.to_datetime(dates)]
-        ovrds = [] if not ovrds else ovrds
+        ovrds = [] if not ovrds else [(field, _todate_greedy(date))
+                                      for (field, date) in ovrds]
 
         if type(tickers) is not list:
             tickers = [tickers]
@@ -761,3 +758,10 @@ def message_to_dict(msg):
         'topicName': msg.topicName(),
         'element': _element_to_dict(msg.asElement())
     }
+
+
+def _todate_greedy(date):
+    try:
+        return f"{pd.to_datetime(date):%Y%m%d}"
+    except (ValueError, TypeError, OverflowError):
+        return date
