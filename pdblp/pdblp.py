@@ -10,12 +10,12 @@ _RESPONSE_TYPES = [blpapi.Event.RESPONSE, blpapi.Event.PARTIAL_RESPONSE]
 
 # partial lookup table for events used from blpapi.Event
 _EVENT_DICT = {
-              blpapi.Event.SESSION_STATUS: 'SESSION_STATUS',
-              blpapi.Event.RESPONSE: 'RESPONSE',
-              blpapi.Event.PARTIAL_RESPONSE: 'PARTIAL_RESPONSE',
-              blpapi.Event.SERVICE_STATUS: 'SERVICE_STATUS',
-              blpapi.Event.TIMEOUT: 'TIMEOUT',
-              blpapi.Event.REQUEST: 'REQUEST'
+    blpapi.Event.SESSION_STATUS: 'SESSION_STATUS',
+    blpapi.Event.RESPONSE: 'RESPONSE',
+    blpapi.Event.PARTIAL_RESPONSE: 'PARTIAL_RESPONSE',
+    blpapi.Event.SERVICE_STATUS: 'SERVICE_STATUS',
+    blpapi.Event.TIMEOUT: 'TIMEOUT',
+    blpapi.Event.REQUEST: 'REQUEST'
 }
 
 
@@ -251,10 +251,8 @@ class BCon(object):
             String or list of strings corresponding to tickers
         flds: {list, string}
             String or list of strings corresponding to FLDS
-        start_date: string
-            String in format YYYYmmdd
-        end_date: string
-            String in format YYYYmmdd
+        start_date: {string, datetime, date}
+        end_date: {string, datetime, date}
         elms: list of tuples
             List of tuples where each tuple corresponds to the other elements
             to be set, e.g. [("periodicityAdjustment", "ACTUAL")].
@@ -266,8 +264,18 @@ class BCon(object):
         longdata: boolean
             Whether data should be returned in long data format or pivoted
         """
+        start_date = f"{pd.to_datetime(start_date):%Y%m%d}"
+        end_date = f"{pd.to_datetime(end_date):%Y%m%d}"
+
         ovrds = [] if not ovrds else ovrds
         elms = [] if not elms else elms
+
+        def _todate_greedy(date):
+            try:
+                return f"{pd.to_datetime(date):%Y%m%d}"
+            except (ValueError, TypeError, OverflowError):
+                return date
+        ovrds = [_todate_greedy(ovrd) for ovrd in ovrds]
 
         elms = list(elms)
 
@@ -285,6 +293,8 @@ class BCon(object):
 
     def _bdh_list(self, tickers, flds, start_date, end_date, elms,
                   ovrds):
+        start_date = f"{pd.to_datetime(start_date):%Y%m%d}"
+        end_date = f"{pd.to_datetime(end_date):%Y%m%d}"
         logger = _get_logger(self.debug)
         if type(tickers) is not list:
             tickers = [tickers]
@@ -524,7 +534,7 @@ class BCon(object):
         flds: {list, string}
             String or list of strings corresponding to FLDS
         dates: list
-            list of date strings in the format YYYYmmdd
+            list of dates
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value. This should not include the date_field which will
@@ -542,6 +552,7 @@ class BCon(object):
         >>> con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", dates)
 
         """
+        dates = [f"{date:%Y%m%d}" for date in pd.to_datetime(dates)]
         ovrds = [] if not ovrds else ovrds
 
         if type(tickers) is not list:
@@ -572,7 +583,7 @@ class BCon(object):
         flds: {list, string}
             String or list of strings corresponding to FLDS
         dates: list
-            list of date strings in the format YYYYmmdd
+            list of dates
         ovrds: list of tuples
             List of tuples where each tuple corresponds to the override
             field and value. This should not include the date_field which will
@@ -591,6 +602,7 @@ class BCon(object):
         ...                  date_field="CURVE_DATE")
 
         """
+        dates = [f"{date:%Y%m%d}" for date in pd.to_datetime(dates)]
         ovrds = [] if not ovrds else ovrds
 
         if type(tickers) is not list:
@@ -608,6 +620,7 @@ class BCon(object):
         return data
 
     def _send_hist(self, tickers, flds, dates, date_field, ovrds):
+        dates = [f"{date:%Y%m%d}" for date in pd.to_datetime(dates)]
         logger = _get_logger(self.debug)
         setvals = []
         request = self._create_req('ReferenceDataRequest', tickers, flds,
@@ -637,10 +650,10 @@ class BCon(object):
         ----------
         ticker: string
             String corresponding to ticker
-        start_datetime: string
-            UTC datetime in format YYYY-mm-ddTHH:MM:SS
-        end_datetime: string
-            UTC datetime in format YYYY-mm-ddTHH:MM:SS
+        start_datetime: {string, datetime}
+            UTC datetime
+        end_datetime: {string, datetime}
+            UTC datetime
         event_type: string {TRADE, BID, ASK, BID_BEST, ASK_BEST, BEST_BID,
                            BEST_ASK}
             Requested data event type
@@ -651,6 +664,8 @@ class BCon(object):
             to be set. Refer to the IntradayBarRequest section in the
             'Services & schemas reference guide' for more info on these values
         """
+        start_datetime = f"{pd.to_datetime(start_datetime):%Y-%m-%dT%H:%M:%S}"
+        end_datetime = f"{pd.to_datetime(end_datetime):%Y-%m-%dT%H:%M:%S}"
         elms = [] if not elms else elms
 
         # flush event queue in case previous call errored out
