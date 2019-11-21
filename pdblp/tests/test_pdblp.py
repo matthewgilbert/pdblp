@@ -221,9 +221,10 @@ def test_bdh_one_ticker_two_field_pivoted(con, start_date, end_date):
     assert_frame_equal(df, df_expect)
 
 
-@pytest.mark.parametrize("start_date,end_date", [("20150629", "2015-06-30"),
-                         ("2015/06/29", "30Jun2015"),
-                         (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))])
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20150629", "2015-06-30"), ("2015/06/29", "30Jun2015"),
+     (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))])
 @ifbbg
 def test_bdh_one_ticker_two_field_longdata(con, start_date, end_date):
     cols = ['PX_LAST', 'VOLUME']
@@ -281,9 +282,10 @@ def test_ref_one_ticker_one_field(con):
     assert_frame_equal(df, df_expect)
 
 
-@pytest.mark.parametrize("date", ["20161010", "2016-10-10",
-                         "2016/10/10", "10Oct2016",
-                         pd.datetime(2016, 10, 10), pd.Timestamp(2016, 10, 10,)])
+@pytest.mark.parametrize(
+    "date",
+    ["20161010", "2016-10-10", "2016/10/10", "10Oct2016",
+     pd.datetime(2016, 10, 10), pd.Timestamp(2016, 10, 10,)])
 @ifbbg
 def test_ref_one_ticker_one_field_override(con, date):
     df = con.ref('AUD Curncy', 'SETTLE_DT',
@@ -345,9 +347,10 @@ def test_ref_mixed_data_error(con):
 
 
 # BULKREF TESTS
-@pytest.mark.parametrize("date", ["20150530", "2015-05-30",
-                         "2015/05/30", "30May2015",
-                         pd.datetime(2015, 5, 30), pd.Timestamp(2015, 5, 30)])
+@pytest.mark.parametrize(
+    "date",
+    ["20150530", "2015-05-30", "2015/05/30", "30May2015",
+     pd.datetime(2015, 5, 30), pd.Timestamp(2015, 5, 30)])
 @ifbbg
 def test_bulkref_one_ticker_one_field(con, data_path, date):
     df = con.bulkref('BCOM Index', 'INDX_MWEIGHT',
@@ -358,9 +361,10 @@ def test_bulkref_one_ticker_one_field(con, data_path, date):
     pivot_and_assert(df, df_expected)
 
 
-@pytest.mark.parametrize("date", ["20150530", "2015-05-30",
-                         "2015/05/30", "30May2015",
-                         pd.datetime(2015, 5, 30), pd.Timestamp(2015, 5, 30)])
+@pytest.mark.parametrize(
+    "date",
+    ["20150530", "2015-05-30", "2015/05/30", "30May2015",
+     pd.datetime(2015, 5, 30), pd.Timestamp(2015, 5, 30)])
 @ifbbg
 def test_bulkref_two_ticker_one_field(con, data_path, date):
     df = con.bulkref(['BCOM Index', 'OEX Index'], 'INDX_MWEIGHT',
@@ -451,9 +455,10 @@ def test_hist_ref_one_ticker_one_field_non_numeric(con, dates):
 
 
 # BULKREF_HIST TESTS
-@pytest.mark.parametrize("dates", [("20150530", "2016-05-30"),
-                         ("2015/05/30", "30May16"),
-                         (pd.datetime(2015, 5, 30), pd.Timestamp(2016, 5, 30))])
+@pytest.mark.parametrize(
+    "dates",
+    [("20150530", "2016-05-30"), ("2015/05/30", "30May16"),
+     (pd.datetime(2015, 5, 30), pd.Timestamp(2016, 5, 30))])
 @ifbbg
 def test_bulkref_hist_one_field(con, data_path, dates):
     df = con.bulkref_hist('BCOM Index', 'INDX_MWEIGHT', dates=dates,
@@ -464,9 +469,9 @@ def test_bulkref_hist_one_field(con, data_path, dates):
     pivot_and_assert(df, df_expected, with_date=True)
 
 
-@pytest.mark.parametrize("dates", [("20160625",), ("2016-06-25",),
-                         ("2016/06/25",), ("25Jun2016",),
-                         (pd.datetime(2016, 6, 25),), (pd.Timestamp(2016, 6, 25),)])
+@pytest.mark.parametrize(
+    "dates", [("20160625",), ("2016-06-25",), ("2016/06/25",), ("25Jun2016",),
+              (pd.datetime(2016, 6, 25),), (pd.Timestamp(2016, 6, 25),)])
 @ifbbg
 def test_bulkhist_ref_with_alternative_reference_field(con, dates):
     # smoke test to  check that the response was sent off and correctly
@@ -475,9 +480,10 @@ def test_bulkhist_ref_with_alternative_reference_field(con, dates):
                      date_field="CURVE_DATE")
 
 
-@pytest.mark.parametrize("start_date,end_date", [("20150629", "2015-06-30"),
-                         ("2015/06/29", "30Jun2015"),
-                         (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))])
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20150629", "2015-06-30"), ("2015/06/29", "30Jun2015"),
+     (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))])
 @ifbbg
 def test_context_manager(port, host, timeout, start_date, end_date):
     with pdblp.bopen(host=host, port=port, timeout=timeout) as bb:
