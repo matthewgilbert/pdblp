@@ -307,7 +307,7 @@ class BCon(object):
 
             if 'responseError' in d:
                 raise ValueError(d)
-            
+
             has_security_error = 'securityError' in d['securityData']
             has_field_exception = len(d['securityData']['fieldExceptions']) > 0
             if has_security_error or has_field_exception:
