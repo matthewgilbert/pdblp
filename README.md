@@ -1,3 +1,5 @@
+**Note: This library has been superseded by [blp](https://github.com/matthewgilbert/blp), the next iteration of pdblp.**
+
 pdblp
 =====
 [![PyPI version](https://badge.fury.io/py/pdblp.svg)](https://badge.fury.io/py/pdblp)
