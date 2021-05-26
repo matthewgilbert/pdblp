@@ -378,8 +378,6 @@ class BCon(object):
             for security_data_dict in d:
                 secData = security_data_dict['securityData']
                 ticker = secData['security']
-                if 'securityError' in secData:
-                    raise ValueError('Unknow security {!r}'.format(ticker))
                 self._check_fieldExceptions(secData['fieldExceptions'])
                 fieldData = secData['fieldData']['fieldData']
                 for fld in flds:
@@ -480,8 +478,6 @@ class BCon(object):
             for security_data_dict in d:
                 secData = security_data_dict['securityData']
                 ticker = secData['security']
-                if 'securityError' in secData:
-                    raise ValueError('Unknow security {!r}'.format(ticker))
                 self._check_fieldExceptions(secData['fieldExceptions'])
                 fieldData = secData['fieldData']['fieldData']
                 for fld in flds:
