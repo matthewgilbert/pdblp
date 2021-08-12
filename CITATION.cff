@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Gilbert"
+  given-names: "Matthew"
+  orcid: "https://orcid.org/0000-0002-5094-6940"
+title: "pdblp: pandas wrapper for Bloomberg Open API"
+version: 0.18.0
+doi: 10.5281/zenodo.2529925
+date-released: 2019-01-01
+url: "https://github.com/matthewgilbert/pdblp"
