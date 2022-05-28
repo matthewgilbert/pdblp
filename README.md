@@ -1,4 +1,4 @@
-**Note: This library has been superseded by [blp](https://github.com/matthewgilbert/blp), the next iteration of pdblp.**
+**Note: This library has been superseded by [blp](https://github.com/matthewgilbert/blp), the next iteration of pdblp.**. This library is no longer under active development.
 
 pdblp
 =====
