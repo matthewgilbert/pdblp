@@ -304,6 +304,10 @@ class BCon(object):
         # Process received events
         for msg in self._receive_events():
             d = msg['element']['HistoricalDataResponse']
+
+            if 'responseError' in d:
+                raise ValueError(d)
+
             has_security_error = 'securityError' in d['securityData']
             has_field_exception = len(d['securityData']['fieldExceptions']) > 0
             if has_security_error or has_field_exception:
@@ -375,6 +379,10 @@ class BCon(object):
             else:
                 corrId = []
             d = msg['element']['ReferenceDataResponse']
+
+            if 'responseError' in d:
+                raise ValueError(d)
+
             for security_data_dict in d:
                 secData = security_data_dict['securityData']
                 ticker = secData['security']
@@ -477,6 +485,10 @@ class BCon(object):
             else:
                 corrId = []
             d = msg['element']['ReferenceDataResponse']
+
+            if 'responseError' in d:
+                raise ValueError(d)
+
             for security_data_dict in d:
                 secData = security_data_dict['securityData']
                 ticker = secData['security']
