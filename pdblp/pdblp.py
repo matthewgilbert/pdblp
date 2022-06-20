@@ -183,6 +183,20 @@ class BCon(object):
             raise ConnectionError('Could not open a //blp/exrsvc service')
         self.exrService = self._session.getService('//blp/exrsvc')
 
+        opened = self._session.openService("//blp/instruments")
+        ev = self._session.nextEvent()
+        ev_name = _EVENT_DICT[ev.eventType()]
+        logger.info("Event Type: %s" % ev_name)
+        for msg in ev:
+            logger.info("Message Received:\n%s" % msg)
+        if ev.eventType() != blpapi.Event.SERVICE_STATUS:
+            raise RuntimeError("Expected a SERVICE_STATUS event but "
+                               "received a %s" % ev_name)
+        if not opened:
+            logger.warning("Failed to open //blp/exrsvc")
+            raise ConnectionError("Could not open a //blp/instruments service")
+        self.instrService = self._session.getService("//blp/instruments")
+
         return self
 
     def _create_req(self, rtype, tickers, flds, ovrds, setvals):
@@ -710,6 +724,44 @@ class BCon(object):
                 for f in v.getElement("DataFields").values():
                     data.append(f.getElementAsString("StringValue"))
         return pd.DataFrame(data)
+
+    def secf(self, query, max_results=10, yk_filter="NONE"):
+        """
+        This function uses the Bloomberg API to retrieve Bloomberg
+        SECF Data queries. Returns list of tickers.
+
+        Parameters
+        ----------
+        query: string
+            A character string representing the desired query. Example "IBM"
+        max_results: int
+            Maximum number of results to return. Default 10.
+        yk_filter: string
+            A character string respresenting a Bloomberg yellow-key to limit
+            search results to. Valid values are: CMDT, EQTY, MUNI,
+            PRFD, CLNT, MMKT, GOVT, CORP, INDX, CURR, MTGE. Default NONE.
+
+        Returns
+        -------
+        data: pandas.DataFrame
+            List of bloomberg tickers from the SECF function
+        """
+        logger = _get_logger(self.debug)
+        request = self.instrService.createRequest("instrumentListRequest")
+        request.set("query", query)
+        request.set("maxResults", max_results)
+        request.set("yellowKeyFilter", "YK_FILTER_%s" % yk_filter)
+        logger.info("Sending Request:\n%s" % request)
+        self._session.sendRequest(request, identity=self._identity)
+        data = []
+        for msg in self._receive_events():
+            for r in msg.getElement("results").values():
+                ticker = r.getElementAsString("security")
+                ticker = ticker.replace('<', ' ').replace('>', '').upper()
+                descr = r.getElementAsString("description")
+                if not descr.endswith('(Multiple Matches)'):
+                    data.append((ticker, descr))
+        return pd.DataFrame(data, columns=['ticker', 'description'])
 
     def stop(self):
         """
