@@ -89,31 +89,41 @@ ifbbg = pytest.mark.skipif(pytest.config.cache.get('offline', False),
                            reason="No BBG connection, skipping tests")
 
 
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20180510", "2018-05-11"), ("2018/05/10", "11May2018"),
+     (pd.datetime(2018, 5, 10), pd.Timestamp(2018, 5, 11))]
+)
 @ifbbg
-def test_bdh_empty_data_only(con):
+def test_bdh_empty_data_only(con, start_date, end_date):
     df = con.bdh(
-            tickers=['1437355D US Equity'],
-            flds=['PX_LAST', 'VOLUME'],
-            start_date='20180510',
-            end_date='20180511',
-            longdata=False
+        tickers=['1437355D US Equity'],
+        flds=['PX_LAST', 'VOLUME'],
+        start_date=start_date,
+        end_date=end_date,
+        longdata=False
     )
     df_exp = pd.DataFrame(
-      [], index=pd.DatetimeIndex([], name='date'),
-      columns=pd.MultiIndex.from_product([[], []],
-                                         names=('ticker', 'field'))
+        [],
+        index=pd.DatetimeIndex([], name='date'),
+        columns=pd.MultiIndex.from_product([[], []], names=('ticker', 'field'))
     )
     assert_frame_equal(df, df_exp)
 
 
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20180510", "2018-05-11"), ("2018/05/10", "11May2018"),
+     (pd.datetime(2018, 5, 10), pd.Timestamp(2018, 5, 11))]
+)
 @ifbbg
-def test_bdh_empty_data_with_non_empty_data(con):
+def test_bdh_empty_data_with_non_empty_data(con, start_date, end_date):
     df = con.bdh(
-            tickers=['AAPL US Equity', '1437355D US Equity'],
-            flds=['PX_LAST', 'VOLUME'],
-            start_date='20180510',
-            end_date='20180511',
-            longdata=False
+        tickers=['AAPL US Equity', '1437355D US Equity'],
+        flds=['PX_LAST', 'VOLUME'],
+        start_date=start_date,
+        end_date=end_date,
+        longdata=False
     )
     df_exp = pd.DataFrame(
         [[190.04, 27989289.0], [188.59, 26212221.0]],
@@ -125,29 +135,39 @@ def test_bdh_empty_data_with_non_empty_data(con):
     assert_frame_equal(df, df_exp)
 
 
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20180215", "2018-02-16"), ("2018/02/15", "16Feb2018"),
+     (pd.datetime(2018, 2, 15), pd.Timestamp(2018, 2, 16))]
+)
 @ifbbg
-def test_bdh_partially_empty_data(con):
+def test_bdh_partially_empty_data(con, start_date, end_date):
     df = con.bdh(
-            tickers=['XIV US Equity', 'AAPL US Equity'],
-            flds=['PX_LAST'],
-            start_date='20180215',
-            end_date='20180216',
-            longdata=False
+        tickers=['XIV US Equity', 'AAPL US Equity'],
+        flds=['PX_LAST'],
+        start_date=start_date,
+        end_date=end_date,
+        longdata=False
     )
     df_exp = pd.DataFrame(
         [[6.04, 172.99], [np.NaN, 172.43]],
         index=pd.DatetimeIndex(["20180215", "20180216"], name="date"),
         columns=pd.MultiIndex.from_product(
-                    [["XIV US Equity", "AAPL US Equity"], ["PX_LAST"]],
-                    names=["ticker", "field"]
-                )
+            [["XIV US Equity", "AAPL US Equity"], ["PX_LAST"]],
+            names=["ticker", "field"]
+        )
     )
     assert_frame_equal(df, df_exp)
 
 
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20150629", "2015-06-30"), ("2015/06/29", "30Jun2015"),
+     (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))]
+)
 @ifbbg
-def test_bdh_one_ticker_one_field_pivoted(con):
-    df = con.bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
+def test_bdh_one_ticker_one_field_pivoted(con, start_date, end_date):
+    df = con.bdh('SPY US Equity', 'PX_LAST', start_date, end_date)
     midx = pd.MultiIndex(levels=[["SPY US Equity"], ["PX_LAST"]],
                          labels=[[0], [0]], names=["ticker", "field"])
     df_expect = pd.DataFrame(
@@ -159,9 +179,14 @@ def test_bdh_one_ticker_one_field_pivoted(con):
     assert_frame_equal(df, df_expect)
 
 
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20150629", "2015-06-30"), ("2015/06/29", "30Jun2015"),
+     (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))]
+)
 @ifbbg
-def test_bdh_one_ticker_one_field_longdata(con):
-    df = con.bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630',
+def test_bdh_one_ticker_one_field_longdata(con, start_date, end_date):
+    df = con.bdh('SPY US Equity', 'PX_LAST', start_date, end_date,
                  longdata=True)
     idx = pd.Index(["date", "ticker", "field", "value"])
     data = [["2015-06-29", "2015-06-30"],
@@ -173,10 +198,15 @@ def test_bdh_one_ticker_one_field_longdata(con):
     assert_frame_equal(df, df_expect)
 
 
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20150629", "2015-06-30"), ("2015/06/29", "30Jun2015"),
+     (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))]
+)
 @ifbbg
-def test_bdh_one_ticker_two_field_pivoted(con):
+def test_bdh_one_ticker_two_field_pivoted(con, start_date, end_date):
     cols = ['PX_LAST', 'VOLUME']
-    df = con.bdh('SPY US Equity', cols, '20150629', '20150630')
+    df = con.bdh('SPY US Equity', cols, start_date, end_date)
     midx = pd.MultiIndex(
         levels=[["SPY US Equity"], cols],
         labels=[[0, 0], [0, 1]], names=["ticker", "field"]
@@ -191,10 +221,14 @@ def test_bdh_one_ticker_two_field_pivoted(con):
     assert_frame_equal(df, df_expect)
 
 
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20150629", "2015-06-30"), ("2015/06/29", "30Jun2015"),
+     (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))])
 @ifbbg
-def test_bdh_one_ticker_two_field_longdata(con):
+def test_bdh_one_ticker_two_field_longdata(con, start_date, end_date):
     cols = ['PX_LAST', 'VOLUME']
-    df = con.bdh('SPY US Equity', cols, '20150629', '20150630',
+    df = con.bdh('SPY US Equity', cols, start_date, end_date,
                  longdata=True)
     idx = pd.Index(["date", "ticker", "field", "value"])
     data = [["2015-06-29", "2015-06-29", "2015-06-30", "2015-06-30"],
@@ -248,10 +282,14 @@ def test_ref_one_ticker_one_field(con):
     assert_frame_equal(df, df_expect)
 
 
+@pytest.mark.parametrize(
+    "date",
+    ["20161010", "2016-10-10", "2016/10/10", "10Oct2016",
+     pd.datetime(2016, 10, 10), pd.Timestamp(2016, 10, 10,)])
 @ifbbg
-def test_ref_one_ticker_one_field_override(con):
+def test_ref_one_ticker_one_field_override(con, date):
     df = con.ref('AUD Curncy', 'SETTLE_DT',
-                 [("REFERENCE_DATE", "20161010")])
+                 [("REFERENCE_DATE", date)])
     df_expect = pd.DataFrame(
         columns=["ticker", "field", "value"],
         data=[["AUD Curncy", "SETTLE_DT",
@@ -309,20 +347,28 @@ def test_ref_mixed_data_error(con):
 
 
 # BULKREF TESTS
+@pytest.mark.parametrize(
+    "date",
+    ["20150530", "2015-05-30", "2015/05/30", "30May2015",
+     pd.datetime(2015, 5, 30), pd.Timestamp(2015, 5, 30)])
 @ifbbg
-def test_bulkref_one_ticker_one_field(con, data_path):
+def test_bulkref_one_ticker_one_field(con, data_path, date):
     df = con.bulkref('BCOM Index', 'INDX_MWEIGHT',
-                     ovrds=[("END_DATE_OVERRIDE", "20150530")])
+                     ovrds=[("END_DATE_OVERRIDE", date)])
     df_expected = pd.read_csv(
         os.path.join(data_path, "bulkref_20150530.csv")
     )
     pivot_and_assert(df, df_expected)
 
 
+@pytest.mark.parametrize(
+    "date",
+    ["20150530", "2015-05-30", "2015/05/30", "30May2015",
+     pd.datetime(2015, 5, 30), pd.Timestamp(2015, 5, 30)])
 @ifbbg
-def test_bulkref_two_ticker_one_field(con, data_path):
+def test_bulkref_two_ticker_one_field(con, data_path, date):
     df = con.bulkref(['BCOM Index', 'OEX Index'], 'INDX_MWEIGHT',
-                     ovrds=[("END_DATE_OVERRIDE", "20150530")])
+                     ovrds=[("END_DATE_OVERRIDE", date)])
     df_expected = pd.read_csv(
         os.path.join(data_path, "bulkref_two_fields_20150530.csv")
     )
@@ -336,11 +382,14 @@ def test_bulkref_singleton_error(con):
         con.bulkref('CL1 Comdty', 'FUT_CUR_GEN_TICKER')
 
 
+@pytest.mark.parametrize("start_date,end_date", [("19860101", "1987-01-01"),
+                         ("1986/01/01", "01Jan87"),
+                         (pd.datetime(1986, 1, 1), pd.Timestamp(1987, 1, 1))])
 @ifbbg
-def test_bulkref_null_scalar_sub_element(con):
+def test_bulkref_null_scalar_sub_element(con, start_date, end_date):
     # related to https://github.com/matthewgilbert/pdblp/issues/32#issuecomment-385555289  # NOQA
     # smoke test to check parse correctly
-    ovrds = [("DVD_START_DT", "19860101"), ("DVD_END_DT", "19870101")]
+    ovrds = [("DVD_START_DT", start_date), ("DVD_END_DT", end_date)]
     con.bulkref("101 HK EQUITY", "DVD_HIST", ovrds=ovrds)
 
 
@@ -375,12 +424,14 @@ def test_bulkref_not_applicable_with_applicable_field_smoketest(con):
 
 
 # REF_HIST TESTS
+@pytest.mark.parametrize("dates", [("20160104", "2016-01-05"),
+                         ("2016/01/04", "05Jan2016"),
+                         (pd.datetime(2016, 1, 4), pd.Timestamp(2016, 1, 5))])
 @ifbbg
-def test_hist_ref_one_ticker_one_field_numeric(con):
-    dates = ["20160104", "20160105"]
+def test_hist_ref_one_ticker_one_field_numeric(con, dates):
     df = con.ref_hist("AUD1M CMPN Curncy", "DAYS_TO_MTY", dates)
     df_expect = pd.DataFrame(
-        {"date": dates,
+        {"date": ["20160104", "20160105"],
          "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
          "field": ["DAYS_TO_MTY", "DAYS_TO_MTY"],
          "value": [33, 32]}
@@ -388,12 +439,14 @@ def test_hist_ref_one_ticker_one_field_numeric(con):
     assert_frame_equal(df, df_expect)
 
 
+@pytest.mark.parametrize("dates", [("20160104", "2016-01-05"),
+                         ("2016/01/04", "05Jan2016"),
+                         (pd.datetime(2016, 1, 4), pd.Timestamp(2016, 1, 5))])
 @ifbbg
-def test_hist_ref_one_ticker_one_field_non_numeric(con):
-    dates = ["20160104", "20160105"]
+def test_hist_ref_one_ticker_one_field_non_numeric(con, dates):
     df = con.ref_hist("AUD1M CMPN Curncy", "SETTLE_DT", dates)
     df_expect = pd.DataFrame(
-        {"date": dates,
+        {"date": ["20160104", "20160105"],
          "ticker": ["AUD1M CMPN Curncy", "AUD1M CMPN Curncy"],
          "field": ["SETTLE_DT", "SETTLE_DT"],
          "value": 2 * [pd.datetime(2016, 2, 8).date()]}
@@ -402,9 +455,12 @@ def test_hist_ref_one_ticker_one_field_non_numeric(con):
 
 
 # BULKREF_HIST TESTS
+@pytest.mark.parametrize(
+    "dates",
+    [("20150530", "2016-05-30"), ("2015/05/30", "30May16"),
+     (pd.datetime(2015, 5, 30), pd.Timestamp(2016, 5, 30))])
 @ifbbg
-def test_bulkref_hist_one_field(con, data_path):
-    dates = ["20150530", "20160530"]
+def test_bulkref_hist_one_field(con, data_path, dates):
     df = con.bulkref_hist('BCOM Index', 'INDX_MWEIGHT', dates=dates,
                           date_field='END_DATE_OVERRIDE')
     df_expected = pd.read_csv(
@@ -413,19 +469,25 @@ def test_bulkref_hist_one_field(con, data_path):
     pivot_and_assert(df, df_expected, with_date=True)
 
 
+@pytest.mark.parametrize(
+    "dates", [("20160625",), ("2016-06-25",), ("2016/06/25",), ("25Jun2016",),
+              (pd.datetime(2016, 6, 25),), (pd.Timestamp(2016, 6, 25),)])
 @ifbbg
-def test_bulkhist_ref_with_alternative_reference_field(con):
+def test_bulkhist_ref_with_alternative_reference_field(con, dates):
     # smoke test to  check that the response was sent off and correctly
     # received
-    dates = ["20160625"]
     con.bulkref_hist("BVIS0587 Index", "CURVE_TENOR_RATES", dates,
                      date_field="CURVE_DATE")
 
 
+@pytest.mark.parametrize(
+    "start_date,end_date",
+    [("20150629", "2015-06-30"), ("2015/06/29", "30Jun2015"),
+     (pd.datetime(2015, 6, 29), pd.Timestamp(2015, 6, 30))])
 @ifbbg
-def test_context_manager(port, host):
-    with pdblp.bopen(host=host, port=port) as bb:
-        df = bb.bdh('SPY US Equity', 'PX_LAST', '20150629', '20150630')
+def test_context_manager(port, host, timeout, start_date, end_date):
+    with pdblp.bopen(host=host, port=port, timeout=timeout) as bb:
+        df = bb.bdh('SPY US Equity', 'PX_LAST', start_date, end_date)
     midx = pd.MultiIndex(levels=[["SPY US Equity"], ["PX_LAST"]],
                          labels=[[0], [0]], names=["ticker", "field"])
     df_expect = pd.DataFrame(
@@ -478,6 +540,6 @@ def test_bsrch(con):
 
 
 def test_connection_error(port):
-    con = pdblp.BCon(port=port+1)
+    con = pdblp.BCon(port=port + 1)
     with pytest.raises(ConnectionError):
         con.start()

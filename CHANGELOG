@@ -53,3 +53,7 @@ file for building docs
 - Refactor pdblp to use blpapi.Messages parsed into dicts
 - Remove conda package building
 - Remove testing for python 3.5 and 3.4
+
+# pdblp 0.1.9
+
+ - Allow arbitrary dates formats
